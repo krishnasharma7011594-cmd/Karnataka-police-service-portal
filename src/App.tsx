@@ -2685,8 +2685,181 @@ RESPONSE RULES:
             id="demo-mode-watermark"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit=        {/* TOP COHESIVE HEADER BAR */}
-        <header className="h-16 flex-shrink-0 bg-[#0d1526] border-b border-[#1e293b] px-6 flex items-center justify-between z-10 select-none">
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="fixed top-20 right-6 z-[999] pointer-events-none select-none"
+          >
+            <div className="bg-[#1e1b4b]/95 border-2 border-[#6366f1]/60 text-indigo-300 shadow-xl shadow-indigo-950/40 px-4 py-2.5 rounded-xl flex items-center space-x-3 backdrop-blur-md">
+              <div className="relative flex items-center justify-center">
+                <span className="absolute inline-flex h-2.5 w-2.5 rounded-full bg-indigo-400 animate-ping opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-[#a5b4fc]">HACKATHON MODE ACTIVE</span>
+                <span className="text-[8px] font-mono text-[#818cf8] mt-0.5">KSP Datathon 2026 Sandbox Environment</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex h-screen w-screen overflow-hidden bg-[#0a0f1e] text-[#f1f5f9] select-none font-sans">
+      
+        {/* DESKTOP SIDEBAR */}
+        <aside className="hidden min-[901px]:flex flex-col w-64 bg-[#0d1526] border-r border-[#1e293b] flex-shrink-0 select-none">
+          {/* Sidebar Top Logo Area */}
+          <div className="h-16 border-b border-[#1e293b] px-6 flex items-center space-x-3 bg-[#0d1526]">
+            <div className="w-8 h-8 bg-blue-600/15 border border-blue-500/50 rounded-lg flex items-center justify-center text-blue-400 shadow-inner">
+              <i className="fa-solid fa-building-shield text-sm animate-pulse"></i>
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] font-black tracking-widest text-[#2d97ec] uppercase leading-none font-mono">ಕರ್ನಾಟಕ ಪೊಲೀಸ್</span>
+              <span className="text-xs font-black tracking-wider text-white uppercase mt-1 leading-none">
+                KSP COGNITIVE INTEL
+              </span>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="flex-grow py-6 px-4 space-y-1.5 overflow-y-auto">
+            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2 block font-mono">CORE NAVIGATION</span>
+            {navigationItems.map((item) => {
+              const isActive = activeTab === item.name;
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    playTacticalSound("click");
+                    setActiveTab(item.name);
+                    setSelectedCase(null);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                    isActive
+                      ? "bg-blue-600/10 border border-blue-500/40 text-blue-400 font-extrabold shadow-[inset_0_1px_2px_rgba(59,130,246,0.1)]"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900/40 border border-transparent"
+                  }`}
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <i className={`fa-solid ${item.icon} text-sm ${isActive ? "text-blue-400 animate-pulse" : "text-slate-500"}`}></i>
+                    <span className="tracking-tight text-[11px] leading-none">{item.name}</span>
+                  </div>
+                  {item.badge ? (
+                    <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 leading-none animate-pulse">
+                      {item.badge}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono text-slate-600 leading-none">{item.knName}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sidebar Footer Info */}
+          <div className="p-4 border-t border-[#1e293b] bg-slate-950/20">
+            <div className="flex items-center space-x-2.5 text-[#94a3b8]">
+              <div className="relative">
+                <span className="absolute inline-flex h-2 w-2 rounded-full bg-[#16a34a] animate-ping opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#16a34a]"></span>
+              </div>
+              <span className="text-[9px] font-mono tracking-wider font-semibold text-slate-400 uppercase">SYS SEC_LEVEL_3 STANDBY</span>
+            </div>
+            <p className="text-[9px] font-mono text-slate-500 mt-1 uppercase text-left leading-tight">Workspace authorized</p>
+          </div>
+        </aside>
+
+        {/* MOBILE SIDEBAR DRAWER */}
+        <AnimatePresence>
+          {isMobileSidebarOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="fixed inset-0 bg-black z-[100] min-[901px]:hidden"
+              />
+              {/* Drawer Container */}
+              <motion.aside
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", bounce: 0.1, duration: 0.35 }}
+                className="fixed inset-y-0 left-0 w-72 bg-[#0d1526] border-r border-[#1e293b] z-[101] min-[901px]:hidden flex flex-col select-none"
+              >
+                {/* Header in Drawer */}
+                <div className="h-16 border-b border-[#1e293b] px-6 flex items-center justify-between bg-[#0d1526]">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-600/15 border border-blue-500/50 rounded-lg flex items-center justify-center text-blue-400 shadow-inner">
+                      <i className="fa-solid fa-building-shield text-sm"></i>
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-[9px] font-black tracking-widest text-[#2d97ec] uppercase leading-none font-mono">ಕರ್ನಾಟಕ ಪೊಲೀಸ್</span>
+                      <span className="text-xs font-black tracking-wider text-white uppercase mt-1 leading-none">
+                        KSP COGNITIVE INTEL
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="p-2 -mr-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900/60 transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-xmark text-lg"></i>
+                  </button>
+                </div>
+
+                {/* Drawer Menu links */}
+                <div className="flex-grow py-6 px-4 space-y-1.5 overflow-y-auto">
+                  {navigationItems.map((item) => {
+                    const isActive = activeTab === item.name;
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() => {
+                          playTacticalSound("click");
+                          setActiveTab(item.name);
+                          setSelectedCase(null);
+                          setIsMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                          isActive
+                            ? "bg-blue-600/10 border border-blue-500/40 text-blue-400 font-extrabold shadow-[inset_0_1px_2px_rgba(59,130,246,0.1)]"
+                            : "text-slate-400 hover:text-white hover:bg-slate-900/40 border border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <i className={`fa-solid ${item.icon} text-sm ${isActive ? "text-blue-400" : "text-slate-500"}`}></i>
+                          <span className="tracking-tight text-[11px] leading-none">{item.name}</span>
+                        </div>
+                        {item.badge ? (
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 leading-none">
+                            {item.badge}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-slate-600 leading-none">{item.knName}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile Drawer Footer Info */}
+                <div className="p-4 border-t border-[#1e293b] bg-slate-950/20">
+                  <div className="flex items-center space-x-2 text-slate-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-[9px] font-mono uppercase tracking-wider font-semibold">Active Sec Workspace</span>
+                  </div>
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* RIGHT SIDE VIEW CONTAINER */}
+        <div className="flex-grow flex flex-col h-full overflow-hidden min-w-0">
+
+          <header className="h-16 flex-shrink-0 bg-[#0d1526] border-b border-[#1e293b] px-6 flex items-center justify-between z-10 select-none">
           <div className="flex items-center space-x-3.5">
             <button
               id="mobile-sidebar-toggle-btn"
@@ -2812,93 +2985,6 @@ RESPONSE RULES:
 
             {/* Officer Status trigger */}
             <div className="flex items-center space-x-2 bg-[#111827] px-3.5 py-1.5 rounded-lg border border-[#1e293b] text-xs font-semibold text-[#f1f5f9] select-none shadow-sm hover:border-indigo-400/40 active:scale-95 transition-all flex-shrink-0">
-              <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse"></span>
-              <span className="max-xs:hidden">Off. Prakash M</span>
-              <i className="fa-solid fa-chevron-down text-[#94a3b8] text-[10px]"></i>
-            </div>
-          </div>
-        </header>��ಾಟ್ಫಾರ್ಮ್
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-4 sm:space-x-6">
-            {/* Notification Bell */}
-            <div className="relative">
-              <button
-                id="notification-bell-btn"
-                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                className="w-9 h-9 rounded-lg bg-slate-900/60 border border-[#1e293b] flex items-center justify-center text-slate-300 hover:text-white relative cursor-pointer focus:outline-none transition-colors"
-                title="Active Case Notifications"
-              >
-                <i className="fa-regular fa-bell text-[15px]"></i>
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 text-white font-bold text-[10px] flex items-center justify-center border-2 border-[#0d1526]">
-                  3
-                </span>
-              </button>
-
-              {/* Notification Dropdown Panel */}
-              <AnimatePresence>
-                {isNotificationOpen && (
-                  <motion.div
-                    id="notification-dropdown"
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2.5 w-80 bg-[#0d1526] border border-[#1e293b] rounded-xl shadow-2xl overflow-hidden z-50 text-left"
-                  >
-                    <div className="p-3 bg-slate-950/60 border-b border-[#1e293b] flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-white uppercase tracking-wider font-mono">Tactical Center Notifications</span>
-                      <span className="text-[8px] font-mono bg-red-950 text-red-400 px-1.5 py-0.5 rounded font-bold uppercase">3 Alerts</span>
-                    </div>
-                    <div className="divide-y divide-[#1e293b]/45">
-                      
-                      <div className="p-3 hover:bg-slate-900/30 transition-colors flex gap-2.5 items-start">
-                        <span className="text-xs mt-0.5">🔴</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold text-white uppercase tracking-wider">New FIR Filed</p>
-                          <p className="text-[10px] text-slate-200 mt-0.5 leading-relaxed">
-                            KSP/BLR/2026/0060 - Chain Snatching, Uttarahalli
-                          </p>
-                          <span className="text-[8px] font-mono text-slate-500 block mt-1">2 hours ago</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 hover:bg-slate-900/30 transition-colors flex gap-2.5 items-start">
-                        <span className="text-xs mt-0.5">🟡</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Warrant Pending</p>
-                          <p className="text-[10px] text-slate-200 mt-0.5 leading-relaxed">
-                            ACC002 Suresh Patil absconding warrant issued.
-                          </p>
-                          <span className="text-[8px] font-mono text-slate-500 block mt-1">48 hours ago</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 hover:bg-slate-900/30 transition-colors flex gap-2.5 items-start">
-                        <span className="text-xs mt-0.5">🔵</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">AI Tactical Alert</p>
-                          <p className="text-[10px] text-slate-200 mt-0.5 leading-relaxed">
-                            Phone sequence 9741551100 linked across 3 active cases this week.
-                          </p>
-                          <span className="text-[8px] font-mono text-slate-500 block mt-1">AI Synthesis</span>
-                        </div>
-                      </div>
-
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Live Clock Component */}
-            <div className="hidden sm:flex items-center space-x-2 bg-slate-900/60 font-mono px-3 py-1.5 rounded border border-[#1e293b] text-xs text-blue-400">
-              <i className="fa-regular fa-clock text-blue-500"></i>
-              <span>{liveTime}</span>
-            </div>
-
-            {/* Officer Status trigger */}
-            <div className="flex items-center space-x-2 bg-[#111827] px-3.5 py-1.5 rounded border border-[#1e293b] text-xs font-medium text-[#f1f5f9]">
               <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse"></span>
               <span className="max-xs:hidden">Off. Prakash M</span>
               <i className="fa-solid fa-chevron-down text-[#94a3b8] text-[10px]"></i>
@@ -5085,6 +5171,8 @@ RESPONSE RULES:
           </div>
         </footer>
 
+        </div> {/* END RIGHT SIDE VIEW CONTAINER */}
+
       </div>
 
       {/* DETAIL MODAL (opens when "View Details" clicked) */}
@@ -5510,7 +5598,6 @@ RESPONSE RULES:
         )}
       </AnimatePresence>
 
-    </div>
     </>
   );
 }
