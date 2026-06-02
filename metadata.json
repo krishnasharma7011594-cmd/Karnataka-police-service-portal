@@ -1,0 +1,6 @@
+{
+  "name": "KSP Intel",
+  "description": "Karnataka State Police AI Crime Intelligence Platform",
+  "requestFramePermissions": ["microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
