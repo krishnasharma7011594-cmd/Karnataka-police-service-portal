@@ -49,6 +49,12 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Security, Quality & GitHub Integrity States
+  const [securityTabOption, setSecurityTabOption] = useState<"github" | "data-quality" | "audit-logs">("github");
+  const [isDataScanActive, setIsDataScanActive] = useState<boolean>(false);
+  const [dataScanProgress, setDataScanProgress] = useState<number>(0);
+  const [dataScanLogs, setDataScanLogs] = useState<string[]>([]);
+
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => {
@@ -113,6 +119,51 @@ export default function App() {
   const [scenarioHighlight, setScenarioHighlight] = useState<string | null>(null);
   const [isScenarioPlaying, setIsScenarioPlaying] = useState<boolean>(false);
   const [showDemoWatermark, setShowDemoWatermark] = useState<boolean>(true);
+
+  // Security, Quality & GitHub Integrity scanning simulation
+  const startAuditScan = () => {
+    if (isDataScanActive) return;
+    setIsDataScanActive(true);
+    setDataScanProgress(0);
+    playTacticalSound("radar");
+    const logs = [
+      "🔄 Initializing Karnataka State Police (KSP) Intelligence Audit Engine v2026.1...",
+      "🔍 Establishing secure SHA-256 handshake with KSP GitHub core assets...",
+      "✓ repository 'ksp-cognitive-core' linked on main branch.",
+      "✓ repository 'ksp-intelligence-gateway' linked on main branch.",
+      "✓ repository 'ksp-geo-radar' linked on production branch.",
+      "🛡️ Running code quality and secret scanner pipeline...",
+      "🟢 Scanning environment variables: GEMINI_API_KEY secure (masked in memory).",
+      "🟢 Zero critical vulnerabilities found in yarn/npm dependencies.",
+      "🟢 Commits and pull requests signed by crypto-keys (GPG validation OK).",
+      "🧹 Initiating dataset data quality check...",
+      "📋 Auditing active FIR registries in Bengaluru Urban (52 FIRs)...",
+      "📍 Correlating geo-location metadata coordinates with high-res GIS mapping vector...",
+      "📍 All 52 coordinates within state geographic bounds. Geofence Check: PASSED.",
+      "✓ Data deduplication completed. Unique records: 100%.",
+      "🎉 Quality audit complete! Code quality: 98/100. Confidential security audit score: 100% SECURE."
+    ];
+    
+    setDataScanLogs([]);
+    let logIdx = 0;
+    const interval = setInterval(() => {
+      setDataScanProgress((prev) => {
+        const next = prev + 8;
+        if (next >= 100) {
+          clearInterval(interval);
+          setIsDataScanActive(false);
+          playTacticalSound("success");
+          return 100;
+        }
+        return next;
+      });
+      
+      if (logIdx < logs.length) {
+        setDataScanLogs((prev) => [...prev, logs[logIdx]]);
+        logIdx++;
+      }
+    }, 250);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2580,6 +2631,7 @@ RESPONSE RULES:
     { name: "Repeat Offenders", knName: "ಮರು ಅಪರಾಧಿಗಳು", icon: "fa-users-slash", badge: null },
     { name: "Trend Analysis", knName: "ಟ್ರೆಂಡ್ ವಿಶ್ಲೇಷಣೆ", icon: "fa-chart-bar", badge: null },
     { name: "AI Assistant", knName: "ಎಐ ಸಹಾಯಕ", icon: "fa-robot", badge: "AI" },
+    { name: "Security & Quality", knName: "ಸುರಕ್ಷತೆ", icon: "fa-fingerprint", badge: "SEC" },
     { name: "Settings", knName: "ಸೆಟ್ಟಿಂಗ್ಸ್", icon: "fa-gears", badge: null }
   ];
 
@@ -5119,8 +5171,375 @@ RESPONSE RULES:
             </div>
           )}
 
+          {/* SECURITY & QUALITY INTEGRITY HUB */}
+          {activeTab === "Security & Quality" && (
+            <div className="flex flex-col w-full max-w-6xl mx-auto space-y-6 pb-12 text-left animate-fade-in px-6">
+              
+              {/* Header */}
+              <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 bg-indigo-950/40 rounded-lg border border-indigo-900/40 flex items-center justify-center text-indigo-400">
+                    <i className="fa-solid fa-fingerprint text-lg animate-pulse"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-md font-bold text-white uppercase tracking-wider">KSP Secure Codebase & Data Quality Audits</h3>
+                    <p className="text-[11px] text-[#94a3b8] mt-1">
+                      Automated gatekeeping for source control, API key sentinel masks, and criminal registry integrity checks.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={startAuditScan}
+                    disabled={isDataScanActive}
+                    className={`px-4 py-2 text-xs font-bold leading-none uppercase tracking-wide rounded-lg flex items-center space-x-2 transition-all cursor-pointer ${
+                      isDataScanActive
+                        ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 shadow-lg shadow-indigo-950/50"
+                    }`}
+                  >
+                    <i className={`fa-solid ${isDataScanActive ? "fa-circle-notch animate-spin text-indigo-400" : "fa-shield-halved text-indigo-200"}`}></i>
+                    <span>{isDataScanActive ? `Auditing (${dataScanProgress}%)` : "Run Complete Audit Scan"}</span>
+                  </button>
+                  <div className="hidden sm:flex items-center space-x-2 bg-[#0c1222] border border-[#1e293b] rounded-lg px-3 py-1.5 text-[10px] font-mono text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>STANDBY SECURE Grade_A</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-tab buttons */}
+              <div className="flex space-x-2 bg-slate-950/45 p-1 rounded-lg border border-[#1e293b] w-max select-none">
+                <button
+                  onClick={() => { playTacticalSound("click"); setSecurityTabOption("github"); }}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    securityTabOption === "github"
+                      ? "bg-indigo-600/15 border border-indigo-500/35 text-indigo-400"
+                      : "text-slate-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  <i className="fa-brands fa-github mr-2"></i>GitHub Repositories
+                </button>
+                <button
+                  onClick={() => { playTacticalSound("click"); setSecurityTabOption("data-quality"); }}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    securityTabOption === "data-quality"
+                      ? "bg-indigo-600/15 border border-indigo-500/35 text-indigo-400"
+                      : "text-slate-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  <i className="fa-solid fa-list-check mr-2"></i>Data Quality (Audit)
+                </button>
+                <button
+                  onClick={() => { playTacticalSound("click"); setSecurityTabOption("audit-logs"); }}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    securityTabOption === "audit-logs"
+                      ? "bg-indigo-600/15 border border-indigo-500/35 text-indigo-400"
+                      : "text-slate-400 hover:text-white border border-transparent"
+                  }`}
+                >
+                  <i className="fa-solid fa-clock-rotate-left mr-2"></i>Access & Secrets Sentinel
+                </button>
+              </div>
+
+              {/* MAIN SUB-TAB PANELS */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Left side parameters / audit logs console */}
+                <div className="lg:col-span-8 space-y-6">
+                  
+                  {/* Option 1: GitHub Codebase Integrity */}
+                  {securityTabOption === "github" && (
+                    <div className="space-y-6 animate-fade-in">
+                      {/* Active Connected Repositories listing */}
+                      <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 space-y-4 text-left">
+                        <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                          <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">Linked GitHub Assets (Internal KSP Network)</span>
+                          <span className="text-[8.5px] font-mono bg-indigo-950 text-indigo-400 px-2 py-0.5 rounded border border-indigo-900/60 uppercase font-black">Connected via OAuth</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {[
+                            { name: "ksp-cognitive-core", branch: "main", coverage: "94.1%", cve: "0 Pending", quality: "A+" },
+                            { name: "ksp-intelligence-gateway", branch: "main", coverage: "91.8%", cve: "0 Pending", quality: "A" },
+                            { name: "ksp-geo-radar", branch: "production", coverage: "96.4%", cve: "0 Pending", quality: "A+" }
+                          ].map((repo) => (
+                            <div key={repo.name} className="bg-[#070b14]/70 border border-[#1e293b]/80 p-4 rounded-lg relative overflow-hidden flex flex-col justify-between h-36">
+                              <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-xs font-bold text-indigo-300 font-mono truncate">{repo.name}</span>
+                                  <span className="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase leading-none">{repo.quality}</span>
+                                </div>
+                                <div className="flex items-center space-x-1 text-[9px] text-[#94a3b8] font-mono">
+                                  <i className="fa-solid fa-code-branch text-[#475569]"></i>
+                                  <span>{repo.branch}</span>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#1e293b]/50">
+                                <div>
+                                  <div className="text-[7.5px] text-slate-500 uppercase tracking-widest font-black font-mono">Test Coverage</div>
+                                  <div className="text-[11px] font-bold text-[#f1f5f9] mt-0.5 font-mono">{repo.coverage}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[7.5px] text-slate-500 uppercase tracking-widest font-black font-mono">Vulnerabilities</div>
+                                  <div className="text-[11px] font-bold text-emerald-400 mt-0.5 font-mono">{repo.cve}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Code quality & signed GPG commits */}
+                      <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 space-y-4">
+                        <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                          <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">Recent GitHub Commits Integrity & Signatures</span>
+                          <span className="text-[8px] font-mono text-emerald-400 font-bold bg-emerald-950/40 px-2 py-0.5 rounded leading-none text-right">ALL SIGNED</span>
+                        </div>
+
+                        <div className="divide-y divide-[#1e293b]/60">
+                          {[
+                            { commit: "9c3f1e1a", author: "prakash_m_dev", msg: "Refactor core geospatial clustering for district boundary alignments", time: "2 hours ago" },
+                            { commit: "4b8e202d", author: "ksp_agent_engine", msg: "Integrate LLM automated reasoning fallbacks for missing historical records", time: "18 hours ago" },
+                            { commit: "fa612d9b", author: "sharma_krishna", msg: "Configure production secret key sentinel & secure masked environment loaders", time: "1 day ago" },
+                            { commit: "ee890a5c", author: "prakash_m_dev", msg: "Setup automated Geocode precision triggers for Hubli crime zone parameters", time: "3 days ago" }
+                          ].map((commit, cIdx) => (
+                            <div key={cIdx} className="py-3 flex items-start justify-between gap-3 text-xs">
+                              <div className="flex gap-3">
+                                <div className="mt-0.5 font-mono text-[10px] bg-indigo-950/70 border border-indigo-900/60 rounded px-1.5 py-0.5 text-indigo-400 font-bold flex-shrink-0">
+                                  {commit.commit}
+                                </div>
+                                <div className="text-left">
+                                  <p className="text-[#f1f5f9] font-medium leading-normal">{commit.msg}</p>
+                                  <div className="flex gap-2.5 items-center mt-1 text-[9px] text-[#94a3b8] font-mono">
+                                    <span className="text-white hover:underline cursor-pointer flex items-center gap-1.5">
+                                      <i className="fa-solid fa-user-circle text-slate-500 text-[10px]"></i>
+                                      <span>@{commit.author}</span>
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span>{commit.time}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="flex-shrink-0 flex items-center space-x-1 bg-emerald-950/70 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 text-[8.5px] rounded font-mono leading-none font-bold">
+                                <i className="fa-solid fa-shield-halved text-[8px]"></i>
+                                <span>GPG Signed</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Option 2: Active Data Quality checks */}
+                  {securityTabOption === "data-quality" && (
+                    <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 space-y-6 animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                        <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">KSP Crime Dataset Quality Metrics</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[8.5px] font-mono bg-blue-950 text-blue-400 px-2 py-0.5 rounded leading-none font-bold">DATA_STABLE</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="bg-[#070b14]/70 border border-[#1e293b]/80 p-4 rounded-xl space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider font-mono">Sanity Check Matrix</span>
+                            <span className="text-xs font-bold text-emerald-400">99.4% Pass</span>
+                          </div>
+                          
+                          <div className="space-y-3 pt-1">
+                            {[
+                              { label: "Mismatched State Coordinates Check", value: "0 / 52 Passed", percent: 100 },
+                              { label: "Empty Mandated FIR Field Checks", value: "0 Incompleted", percent: 100 },
+                              { label: "Offender Profile Biometric Aadhaar Matches", value: "97.8% Unified", percent: 97.8 },
+                              { label: "District Name Standardization Check", value: "60 / 60 Calibrated", percent: 100 }
+                            ].map((row, rIdx) => (
+                              <div key={rIdx} className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px] font-mono">
+                                  <span className="text-slate-400">{row.label}</span>
+                                  <span className="text-white font-bold">{row.value}</span>
+                                </div>
+                                <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-indigo-600 h-full" style={{ width: `${row.percent}%` }}></div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-[#070b14]/70 border border-[#1e293b]/80 p-4 rounded-xl flex flex-col justify-between space-y-4">
+                          <div className="space-y-1 text-left">
+                            <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider font-mono block">Data Compression & Duplicate Radar</span>
+                            <p className="text-[11px] text-slate-300 leading-relaxed mt-1">
+                              Every 6 hours, our AI crawler cross-references names, cell numbers, vehicle registries, and crime reports to flag and deduplicate overlapping records automatically.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-[#1e293b]/50 text-center">
+                            <div className="bg-slate-950/55 p-2 rounded-lg border border-[#1e293b]/60">
+                              <span className="text-[8px] text-slate-500 uppercase font-bold block leading-none">Duplicate Rate</span>
+                              <span className="text-base font-extrabold text-[#f1f5f9] mt-1 block font-mono">0.0%</span>
+                            </div>
+                            <div className="bg-slate-950/55 p-2 rounded-lg border border-[#1e293b]/60">
+                              <span className="text-[8px] text-slate-500 uppercase font-bold block leading-none">GPS Accuracy</span>
+                              <span className="text-base font-extrabold text-blue-400 mt-1 block font-mono">&lt; 10m</span>
+                            </div>
+                            <div className="bg-slate-950/55 p-2 rounded-lg border border-[#1e293b]/60">
+                              <span className="text-[8px] text-slate-500 uppercase font-bold block leading-none">Entity Integrity</span>
+                              <span className="text-base font-extrabold text-emerald-400 mt-1 block font-mono">99.7%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Option 3: Access & Secrets Sentinel */}
+                  {securityTabOption === "audit-logs" && (
+                    <div className="space-y-6 animate-fade-in">
+                      {/* Live Sentinel protection log */}
+                      <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 space-y-4">
+                        <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                          <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">Tactical Access Logs & Session Auth Sentinel</span>
+                          <span className="text-[8px] font-mono bg-[#1e1b4b] text-indigo-300 border border-indigo-900/50 px-2 py-0.5 rounded leading-none font-bold animate-pulse">Sentinel Live</span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left font-mono text-[10px] divide-y divide-[#1e293b]/55">
+                            <thead>
+                              <tr className="text-slate-500 uppercase tracking-widest font-black">
+                                <th className="pb-2.5">User Handle</th>
+                                <th className="pb-2.5">Clearance</th>
+                                <th className="pb-2.5">Terminal Event Type</th>
+                                <th className="pb-2.5">IPv4 Origin</th>
+                                <th className="pb-2.5 text-right font-bold">Time Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#1e293b]/55 text-slate-300">
+                              {[
+                                { user: "Prakash M (Officer)", clearance: "Level 3", event: "Biometric Login Successful", ip: "10.240.8.12", time: "Just now" },
+                                { user: "AI Engine System", clearance: "Level 4", event: "Dossier Reasoner Query Trigger", ip: "127.0.0.1", time: "4 mins ago" },
+                                { user: "Prakash M (Officer)", clearance: "Level 3", event: "FIR 2026/0060 Search Query", ip: "10.240.8.12", time: "30 mins ago" },
+                                { user: "Server System Admin", clearance: "Level 5", event: "API Key Mask Guard Active", ip: "10.0.12.80", time: "2 hours ago" },
+                                { user: "KSP Automated Sync", clearance: "Level 4", event: "Karnataka Crime Database Handshake", ip: "10.150.1.200", time: "5 hours ago" },
+                              ].map((row, rIdx) => (
+                                <tr key={rIdx} className="hover:bg-slate-900/35 transition-colors">
+                                  <td className="py-2.5 text-white font-bold">{row.user}</td>
+                                  <td className="py-2.5 font-bold"><span className="text-indigo-400 bg-[#1e1b4b] border border-indigo-900/50 px-1.5 py-0.5 rounded text-[8.5px] uppercase">{row.clearance}</span></td>
+                                  <td className="py-2.5 text-slate-400">{row.event}</td>
+                                  <td className="py-2.5 text-slate-500">{row.ip}</td>
+                                  <td className="py-2.5 text-right font-semibold text-slate-400">{row.time}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Secret Mask Sentinel details */}
+                      <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5 space-y-4">
+                        <div className="flex items-center space-x-2 border-b border-[#1e293b] pb-2">
+                          <i className="fa-solid fa-key text-[#f59e0b] text-xs"></i>
+                          <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">Confidential Secret & Credentials Vault Status</span>
+                        </div>
+
+                        <div className="p-4 bg-slate-950/60 border border-emerald-900/40 rounded-xl space-y-3.5 flex items-start gap-4">
+                          <div className="w-9 h-9 rounded-full bg-emerald-950/60 border border-emerald-900/60 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                            <i className="fa-solid fa-shield text-base text-emerald-400 animate-pulse"></i>
+                          </div>
+                          <div className="space-y-1.5 text-left">
+                            <h4 className="text-xs font-bold text-[#f1f5f9] uppercase tracking-wide">Environment Variable Safeguards Enabled</h4>
+                            <p className="text-[10.5px] text-[#94a3b8] leading-relaxed">
+                              This workbench utilizes a premium, server-side secure API proxy structure complying with global sandboxing standards. No sensitive API key fields, personal authorization secrets, or private GitHub tokens are leaked to the client browser dev-tools. All requests involving key calculations are executed exclusively inside the sandbox envelope.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* Right side interactive console for real-time Audit logs logs */}
+                <div className="lg:col-span-4 bg-[#111827] border border-[#1e293b] rounded-xl p-4 flex flex-col h-[525px] justify-between text-left shadow-lg overflow-hidden">
+                  <div className="flex-1 min-h-0 flex flex-col space-y-3.5 h-full">
+                    {/* Console Header */}
+                    <div className="border-b border-[#1e293b] pb-2 flex items-center justify-between flex-shrink-0">
+                      <span className="text-[10px] font-black text-white tracking-widest uppercase font-mono flex items-center space-x-1.5">
+                        <i className="fa-solid fa-terminal text-indigo-400"></i>
+                        <span>AUDIT PIPELINE LOGS</span>
+                      </span>
+                      <span className="text-[8px] font-mono text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase bg-emerald-950/20 border border-emerald-900/30">
+                        Active_Listen
+                      </span>
+                    </div>
+
+                    {/* Console body showing either standby or logs */}
+                    <div className="flex-grow bg-[#070b14] border border-[#1e293b] rounded-lg p-3.5 overflow-y-auto font-mono text-[9.5px] text-slate-300 leading-normal flex flex-col justify-between select-text scrollbar-thin scrollbar-thumb-indigo-950 relative min-h-0 h-full">
+                      
+                      <div className="space-y-2.5">
+                        {dataScanLogs.length === 0 ? (
+                          <div className="h-44 flex flex-col items-center justify-center text-center space-y-2 text-[#475569] select-none">
+                            <i className="fa-solid fa-gauge-simple-high text-xl animate-pulse text-[#334155]"></i>
+                            <p className="text-[9px] uppercase tracking-wide">Security Auditor Standby</p>
+                            <span className="text-[8.5px] text-slate-600 block leading-relaxed max-w-xs">Click Run Complete Audit Scan above to authenticate KSP codebase, checks, and geofencing integrity.</span>
+                          </div>
+                        ) : (
+                          dataScanLogs.map((log, lIdx) => {
+                            const isError = log.includes("❌");
+                            const isSuccess = log.includes("✓") || log.includes("🎉") || log.includes("🟢");
+                            return (
+                              <div key={lIdx} className={`text-left ${isError ? "text-red-400" : isSuccess ? "text-emerald-400 font-semibold" : "text-slate-300"}`}>
+                                {log}
+                              </div>
+                            );
+                          })
+                        )}
+                        {isDataScanActive && (
+                          <div className="flex items-center space-x-2 text-indigo-400 animate-pulse font-bold mt-2">
+                            <span className="inline-block w-2 bg-indigo-500 h-3 animate-ping"></span>
+                            <span>SCANNING PIPELINE ACTIVE...</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Percentage progress bar inside console */}
+                      {isDataScanActive && (
+                        <div className="mt-4 pt-3 border-t border-[#1e293b]/45 flex-shrink-0">
+                          <div className="flex justify-between text-[8px] uppercase tracking-widest font-bold text-indigo-400 mb-1">
+                            <span>Scanning status</span>
+                            <span>{dataScanProgress}%</span>
+                          </div>
+                          <div className="w-full bg-[#1e293b] h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-gradient-to-r from-indigo-500 to-blue-500 h-full transition-all duration-300" style={{ width: `${dataScanProgress}%` }}></div>
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* Micro Summary metrics footer of the auditor console */}
+                  <div className="mt-4 pt-3 border-t border-[#1e293b] flex items-center justify-between text-[8.5px] font-mono text-slate-500 uppercase flex-shrink-0">
+                    <span className="flex items-center gap-1.5 text-indigo-400 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                      <span>MD5 Integrity: OK</span>
+                    </span>
+                    <span>Verified Block #240.HACK</span>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
           {/* EMPTY PLACEHOLDER PAGES switching beautifully */}
-          {activeTab !== "Dashboard" && activeTab !== "FIR Search" && activeTab !== "Network Analysis" && activeTab !== "Crime Map" && activeTab !== "Repeat Offenders" && activeTab !== "AI Assistant" && activeTab !== "Trend Analysis" && (
+          {activeTab !== "Dashboard" && activeTab !== "FIR Search" && activeTab !== "Network Analysis" && activeTab !== "Crime Map" && activeTab !== "Repeat Offenders" && activeTab !== "AI Assistant" && activeTab !== "Trend Analysis" && activeTab !== "Security & Quality" && (
             <div className="h-[480px] flex flex-col items-center justify-center bg-[#111827] border border-[#1e293b] rounded-lg p-8 text-center space-y-5 max-w-4xl mx-auto shadow-xl">
               <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-900/50 flex items-center justify-center text-[#2563eb] text-2xl shadow-inner shadow-blue-950">
                 <i className="fa-solid fa-triangle-exclamation text-amber-500 animate-pulse"></i>
