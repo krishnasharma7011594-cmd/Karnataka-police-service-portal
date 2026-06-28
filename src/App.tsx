@@ -116,6 +116,65 @@ export default function App() {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isFloatingChatOpen, setIsFloatingChatOpen] = useState<boolean>(false);
 
+  // --- Tactical Dispatch & Officer Tracking & Barricade Simulation States ---
+  const [officers, setOfficers] = useState<Array<{ id: string; name: string; status: "Standby" | "On Patrol" | "Responding"; lat: number; lng: number }>>([
+    { id: "KP-1001", name: "Officer Ravi (BLR)", status: "Standby", lat: 12.9698, lng: 77.5901 },
+    { id: "KP-1002", name: "Officer Kumar (MYS)", status: "On Patrol", lat: 12.3051, lng: 76.6551 },
+    { id: "KP-1003", name: "Officer Anand (MNG)", status: "On Patrol", lat: 12.8654, lng: 74.8426 },
+    { id: "KP-1004", name: "Officer Prakash (HUB)", status: "Standby", lat: 15.3647, lng: 75.1240 },
+    { id: "KP-1005", name: "Officer Shiva (BEL)", status: "On Patrol", lat: 15.8497, lng: 74.4977 },
+    { id: "KP-1006", name: "Officer Gowda (KLG)", status: "On Patrol", lat: 17.3297, lng: 76.8343 },
+    { id: "KP-1007", name: "Officer Nayak (BLR-R)", status: "Standby", lat: 13.1004, lng: 77.3884 }
+  ]);
+  const [tacticalIncidents, setTacticalIncidents] = useState<Array<{ id: string; type: string; lat: number; lng: number; time: string; assignedOfficers: string[]; status: "Active" | "Resolved" }>>([]);
+  const [barricades, setBarricades] = useState<Array<{ id: string; name: string; lat: number; lng: number; timestamp: string; officerName: string }>>([
+    { id: "BAR-101", name: "MG Road Checkpoint (Bengaluru Urban)", lat: 12.9735, lng: 77.6075, timestamp: "2026-06-19 08:30", officerName: "Officer Kumar (MYS)" },
+    { id: "BAR-102", name: "Indiranagar 100ft Rd Gate (Bengaluru)", lat: 12.9716, lng: 77.6412, timestamp: "2026-06-25 10:15", officerName: "Officer Shiva (BEL)" },
+    { id: "BAR-103", name: "Koramangala Sony Signal Check (Bengaluru)", lat: 12.9352, lng: 77.6245, timestamp: "2026-06-28 12:00", officerName: "Officer Anand (MNG)" },
+    { id: "BAR-104", name: "Nelamangala Highway Toll (Bengaluru Rural)", lat: 13.1004, lng: 77.3884, timestamp: "2026-06-28 09:30", officerName: "Officer Prakash (HUB)" },
+    { id: "BAR-105", name: "Mysuru Palace Highway Entrance (Mysuru)", lat: 12.3051, lng: 76.6551, timestamp: "2026-06-27 19:45", officerName: "Officer Ravi (BLR)" },
+    { id: "BAR-106", name: "Bunder Port Road Checkpoint (Mangaluru)", lat: 12.8654, lng: 74.8426, timestamp: "2026-06-28 07:15", officerName: "Officer Kumar (MYS)" },
+    { id: "BAR-107", name: "Gokul Road Junction Toll (Hubli-Dharwad)", lat: 15.3647, lng: 75.1240, timestamp: "2026-06-28 11:30", officerName: "Officer Anand (MNG)" },
+    { id: "BAR-108", name: "Hirebagewadi Border NH-48 (Belagavi)", lat: 15.8497, lng: 74.4977, timestamp: "2026-06-26 22:00", officerName: "Officer Prakash (HUB)" },
+    { id: "BAR-109", name: "Aland Road State Highway Check (Kalaburagi)", lat: 17.3297, lng: 76.8343, timestamp: "2026-06-28 01:45", officerName: "Officer Shiva (BEL)" },
+    { id: "BAR-110", name: "Columbia Asia Junction Ring Rd (Mysuru)", lat: 12.3392, lng: 76.6789, timestamp: "2026-06-28 13:10", officerName: "Officer Ravi (BLR)" }
+  ]);
+  const [clickedMapPoint, setClickedMapPoint] = useState<{ lat: number; lng: number } | null>(null);
+  
+  // --- Kannada AI Interviewer States ---
+  const [aiInterviewMessages, setAiInterviewMessages] = useState<Array<{ id: string; sender: "user" | "ai"; text: string; timestamp: string }>>([
+    {
+      id: "interview-init",
+      sender: "ai",
+      text: "ಕರಾಪುರ ಸಹಾಯಕ ಪೊಲೀಸ್ ಎಐಗೆ ಸುಸ್ವಾಗತ. Welcome to the Compassionate Karnataka Police Incident Interview Assistant. \n\nನಮಸ್ಕಾರ, ನಾನು ನಿಮಗೆ ಘಟನೆಯ ವಿವರಗಳನ್ನು ದಾಖಲಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು ಹೇಳಿ, ಏನು ಸಂಭವಿಸಿದೆ? (Please tell me, what happened?)",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+  const [aiInterviewInput, setAiInterviewInput] = useState<string>("");
+  const [isInterviewTyping, setIsInterviewTyping] = useState<boolean>(false);
+  const [interviewReport, setInterviewReport] = useState<{
+    incident_type: string;
+    victim_name: string;
+    location: string;
+    suspect_description: string;
+    vehicle_details: string;
+    urgency_level: string;
+    summary: string;
+  } | null>(null);
+  const [isInterviewSpeechEnabled, setIsInterviewSpeechEnabled] = useState<boolean>(false);
+  const [recognitionStatus, setRecognitionStatus] = useState<"idle" | "listening">("idle");
+
+  // --- Gotcha SOS & Gen Z Slang Decoder States ---
+  const [gotchaSlangInput, setGotchaSlangInput] = useState<string>("");
+  const [gotchaTranslationResult, setGotchaTranslationResult] = useState<any | null>(null);
+  const [gotchaIsTranslating, setGotchaIsTranslating] = useState<boolean>(false);
+  const [gotchaSelectedPreset, setGotchaSelectedPreset] = useState<string>("");
+  const [gotchaFlares, setGotchaFlares] = useState<Array<{ id: string; user: string; age: number; text: string; lat: number; lng: number; locName: string; status: "Pulsing" | "Routed" | "Handled"; time: string }>>([
+    { id: "FLARE-401", user: "Aisha Patel 💅", age: 19, text: "omg some sketchy guy is literally following me at raw-silk layout i'm shook fr fr 😭", lat: 12.9152, lng: 77.6212, locName: "Raw Silk Layout, Koramangala", status: "Pulsing", time: "Just Now" },
+    { id: "FLARE-402", user: "Kabir Sen 🛹", age: 21, text: "nah some rando is lowkey trying to open my PG gate at malleswaram and he's def sussa... highkey scared", lat: 13.0012, lng: 77.5714, locName: "PG Enclave, Malleswaram", status: "Routed", time: "4 mins ago" },
+    { id: "FLARE-403", user: "Ananya Hegde 🎧", age: 20, text: "no cap creepy passenger staring at me in INDIRANAGAR METRO, feels unsafe no chill", lat: 12.9784, lng: 77.6402, locName: "Indiranagar Metro Station", status: "Handled", time: "10 mins ago" }
+  ]);
+
   const [scenarioHighlight, setScenarioHighlight] = useState<string | null>(null);
   const [isScenarioPlaying, setIsScenarioPlaying] = useState<boolean>(false);
   const [showDemoWatermark, setShowDemoWatermark] = useState<boolean>(true);
@@ -165,12 +224,413 @@ export default function App() {
     }, 250);
   };
 
+  // --- Gotcha SOS & Gen Z Slang Decoder Helpers ---
+  const handleTranslateSlang = async (textToTranslate: string) => {
+    if (!textToTranslate.trim()) return;
+    setGotchaIsTranslating(true);
+    playTacticalSound("radar");
+    
+    // Simulate real-time decryption progress
+    await new Promise((resolve) => setTimeout(resolve, 1400));
+
+    const lowercase = textToTranslate.toLowerCase();
+    
+    // Check if Gemini API is available
+    if (geminiApiKey) {
+      try {
+        const prompt = `You are the Social Media Gen Z Slang Triage Engine (deciphering public feeds from WhatsApp and Instagram). Translate this Gen Z distress signal text into structured formal police triage information. Output your response as a valid JSON object ONLY, with the following keys: "formal_translation", "emotional_state", "urgency_rating", "responder_payload", "key_keywords". Do not include any markdown formatting or code blocks.
+Text to translate: "${textToTranslate}"`;
+        
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        // Clean markdown
+        const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        setGotchaTranslationResult(parsed);
+        playTacticalSound("success");
+        setGotchaIsTranslating(false);
+        return;
+      } catch (err) {
+        console.warn("Gemini slang translation failed, falling back to local dictionary", err);
+      }
+    }
+
+    // Offline dictionary fallback
+    let formal = "The reporter indicates they are experiencing an active safety disturbance. ";
+    let emotional = "ANXIOUS & DISTRESSED";
+    let urgency = "HIGH PRIORITIZED PATROL";
+    let keywords = ["Suspicious activity", "Mental trauma"];
+    let payload = "Deploy local station officer for safe containment and contact.";
+
+    if (lowercase.includes("following") || lowercase.includes("stalker")) {
+      formal += "An unidentified suspect is actively tracking and following the victim on foot. Immediate intervention requested.";
+      emotional = "EXHAUSTED & PANICKED (SHOOK FR)";
+      urgency = "CRITICAL DISPATCH LEVEL 1";
+      keywords.push("Active Stalking", "Foot Pursuit");
+      payload = "Dispatch immediate foot patrol & cruiser unit to establish visual contact.";
+    } else if (lowercase.includes("gate") || lowercase.includes("open") || lowercase.includes("rando")) {
+      formal += "A suspicious individual is attempting unauthorized access to a residential PG/apartment gate. High probability of trespassing under influence.";
+      emotional = "HIGHLY VULNERABLE & APPREHENSIVE";
+      urgency = "HIGH PRIORITY DISPATCH";
+      keywords.push("Trespassing Attempt", "Unsecured Gate");
+      payload = "Alert local sector vehicle. Secure building parameters immediately.";
+    } else if (lowercase.includes("passenger") || lowercase.includes("staring") || lowercase.includes("metro")) {
+      formal += "An instance of non-physical public harassment/stalking is reported in transit. Suspect is visually tracking the victim.";
+      emotional = "ANXIOUS & UNCOMFORTABLE (NO CHILL)";
+      urgency = "MEDIUM DISPATCH PATROL";
+      keywords.push("Transit Harassment", "Visual Stalking");
+      payload = "Coordinate with Metro Security Force (BMRCL) or dispatch patrol at the next scheduled stop.";
+    } else if (lowercase.includes("gta") || lowercase.includes("speedrunning") || lowercase.includes("race")) {
+      formal += "Multiple high-speed vehicles are engaged in unauthorized reckless street racing. An accident/collision with public infrastructure has occurred.";
+      emotional = "SHOCKED CITIZENS (ABSOLUTE CHAOS)";
+      urgency = "CRITICAL TRAFFIC COMMAND";
+      keywords.push("Street Racing", "Property Damage", "Reckless Driving");
+      payload = "Dispatch multiple high-speed cruisers and coordinate barrier checkpoint blocks.";
+    } else {
+      formal += `The citizen reports: "${textToTranslate}". The context indicates a general emergency distress beacon.`;
+    }
+
+    setGotchaTranslationResult({
+      formal_translation: formal,
+      emotional_state: emotional,
+      urgency_rating: urgency,
+      responder_payload: payload,
+      key_keywords: keywords
+    });
+    playTacticalSound("success");
+    setGotchaIsTranslating(false);
+  };
+
+  const handleSimulateGotchaFlare = () => {
+    const names = ["Riya Sharma ✨", "Aryan Kapoor 🎧", "Meera Nair 🦋", "Dev Patel 🛹"];
+    const slangs = [
+      "some sketchy car is lowkey following my auto... i'm shook fr fr",
+      "no cap but there's a suspicious person sussin around my PG door",
+      "literally got followed by some creep at malleswaram metro... help ASAP!",
+      "wild street racing at HSR sector 1... they highkey hit a pole and ran away!"
+    ];
+    const locs = [
+      { name: "HSR Layout Sector 1, Bengaluru", lat: 12.9116, lng: 77.6384 },
+      { name: "Malleswaram Metro Station, Bengaluru", lat: 13.0034, lng: 77.5695 },
+      { name: "Gokulam 3rd Stage, Mysuru", lat: 12.3312, lng: 76.6214 },
+      { name: "Kadri Park Junction, Mangaluru", lat: 12.8851, lng: 74.8564 }
+    ];
+    
+    const idx = Math.floor(Math.random() * names.length);
+    const id = "FLARE-" + Math.floor(500 + Math.random() * 499);
+    const newFlare = {
+      id,
+      user: names[idx],
+      age: Math.floor(18 + Math.random() * 5),
+      text: slangs[idx],
+      lat: locs[idx].lat,
+      lng: locs[idx].lng,
+      locName: locs[idx].name,
+      status: "Pulsing" as const,
+      time: "Just Now"
+    };
+
+    setGotchaFlares(prev => [newFlare, ...prev]);
+    playTacticalSound("chime");
+    showToast(`🚨 NEW SOCIAL SOS BEACON DETECTED: ${names[idx]} in ${locs[idx].name}!`);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowDemoWatermark(false);
     }, 4500);
     return () => clearTimeout(timer);
   }, []);
+
+  // --- TACTICAL DISPATCH & INTERVIEWER HELPER HANDLERS ---
+  const handleCreateMockIncident = () => {
+    const incidentTypes = ["Theft", "Robbery", "Vehicle Theft", "Assault"];
+    const randomType = incidentTypes[Math.floor(Math.random() * incidentTypes.length)];
+    
+    // Choose a random Karnataka city hub for state-wide incident simulation
+    const hubs = [
+      { name: "Bengaluru", lat: 12.9716, lng: 77.5946 },
+      { name: "Mysuru", lat: 12.3051, lng: 76.6551 },
+      { name: "Mangaluru", lat: 12.8654, lng: 74.8426 },
+      { name: "Hubli-Dharwad", lat: 15.3647, lng: 75.1240 },
+      { name: "Belagavi", lat: 15.8497, lng: 74.4977 },
+      { name: "Kalaburagi", lat: 17.3297, lng: 76.8343 }
+    ];
+    const targetHub = hubs[Math.floor(Math.random() * hubs.length)];
+    const lat = targetHub.lat + (Math.random() - 0.5) * 0.04;
+    const lng = targetHub.lng + (Math.random() - 0.5) * 0.04;
+    
+    const incidentId = "INC-" + Math.floor(1000 + Math.random() * 9000);
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Calculate nearest 2 officers using Euclidean distance metric
+    const officersWithDistance = officers.map(o => {
+      const dist = Math.sqrt(Math.pow(o.lat - lat, 2) + Math.pow(o.lng - lng, 2));
+      return { ...o, dist };
+    });
+
+    // Sort by distance ascending
+    officersWithDistance.sort((a, b) => a.dist - b.dist);
+
+    const nearest2Ids = [officersWithDistance[0].id, officersWithDistance[1].id];
+    const assignedNames = [officersWithDistance[0].name, officersWithDistance[1].name];
+
+    // Auto assign: update officer status to "Responding" for those 2, remaining are "On Patrol" or "Standby"
+    setOfficers(prev => prev.map(o => {
+      if (nearest2Ids.includes(o.id)) {
+        return { ...o, status: "Responding" as const };
+      }
+      return o;
+    }));
+
+    const newIncident = {
+      id: incidentId,
+      type: randomType,
+      lat,
+      lng,
+      time: timeStr,
+      assignedOfficers: assignedNames,
+      status: "Active" as const
+    };
+
+    setTacticalIncidents(prev => [newIncident, ...prev]);
+    
+    // Recenter map on the incident if map exists
+    if (tacticalMapInstanceRef.current) {
+      tacticalMapInstanceRef.current.setView([lat, lng], 13);
+    }
+    
+    playTacticalSound("chime");
+    showToast(`🚨 DISPATCH ALERT: ${randomType} reported! Units assigned.`);
+  };
+
+  const handleDeployBarricade = (name?: string, officerName?: string) => {
+    if (!clickedMapPoint) {
+      showToast("⚠️ Select a point on the map first.");
+      return;
+    }
+    const barricadeId = "BAR-" + Math.floor(100 + Math.random() * 900);
+    const timeStr = new Date().toISOString().slice(0, 16).replace("T", " ");
+    
+    const newBarricade = {
+      id: barricadeId,
+      name: name || `Checkpoint ${barricadeId}`,
+      lat: clickedMapPoint.lat,
+      lng: clickedMapPoint.lng,
+      timestamp: timeStr,
+      officerName: officerName || "Officer Ravi"
+    };
+
+    setBarricades(prev => [...prev, newBarricade]);
+    setClickedMapPoint(null);
+    playTacticalSound("success");
+    showToast(`🚧 Checkpoint deployed: ${newBarricade.name}`);
+  };
+
+  const handleRemoveBarricade = (id: string) => {
+    setBarricades(prev => prev.filter(b => b.id !== id));
+    playTacticalSound("beep");
+    showToast(`🔓 Checkpoint removed successfully.`);
+  };
+
+  const handleSimulateMovement = () => {
+    setOfficers(prev => prev.map(o => {
+      const statuses: Array<"Standby" | "On Patrol" | "Responding"> = ["Standby", "On Patrol"];
+      const newStatus = o.status === "Responding" ? "Responding" : statuses[Math.floor(Math.random() * statuses.length)];
+      
+      return {
+        ...o,
+        status: newStatus,
+        lat: o.lat + (Math.random() - 0.5) * 0.007,
+        lng: o.lng + (Math.random() - 0.5) * 0.007
+      };
+    }));
+    
+    playTacticalSound("radar");
+    showToast("📡 Fleet coordinates recalculated.");
+  };
+
+  const handleStartSpeechRecognition = () => {
+    const SpeechObj = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechObj) {
+      showToast("⚠️ Voice typing is not supported in this browser.");
+      return;
+    }
+    try {
+      const rec = new SpeechObj();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = "kn-IN"; // Kannada input
+      rec.onstart = () => {
+        setRecognitionStatus("listening");
+        showToast("🎙️ Listening... Speak now in Kannada or English.");
+      };
+      rec.onresult = (e: any) => {
+        const transcript = e.results[0][0].transcript;
+        setAiInterviewInput(transcript);
+        showToast("✓ Speech captured.");
+      };
+      rec.onerror = (e: any) => {
+        console.error("Speech recognition error", e);
+        setRecognitionStatus("idle");
+      };
+      rec.onend = () => {
+        setRecognitionStatus("idle");
+      };
+      rec.start();
+    } catch (err) {
+      console.error(err);
+      setRecognitionStatus("idle");
+    }
+  };
+
+  const handleCommitInterviewMessage = async (msgText: string) => {
+    if (!msgText.trim()) return;
+    const userMsgId = Math.random().toString(36).substring(7);
+    const userTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const updatedMessages = [
+      ...aiInterviewMessages,
+      { id: userMsgId, sender: "user" as const, text: msgText, timestamp: userTimestamp }
+    ];
+    setAiInterviewMessages(updatedMessages);
+    setAiInterviewInput("");
+    setIsInterviewTyping(true);
+    playTacticalSound("beep");
+
+    const conversationHistory = updatedMessages.map(m => `${m.sender === "user" ? "Victim/Officer" : "Interviewer"}: ${m.text}`).join("\n");
+
+    try {
+      let aiResponseText = "";
+      let isReportFinalized = false;
+
+      if (!geminiApiKey) {
+        const questionCount = updatedMessages.filter(m => m.sender === "user").length;
+        
+        if (questionCount === 1) {
+          aiResponseText = "ಖೇದಕರ ಸಂಗತಿ. (I am sorry to hear this.) ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ಏನು ಮತ್ತು ಘಟನೆ ನಡೆದ ನಿಖರ ಸ್ಥಳ ಮತ್ತು ಸಮಯ ಯಾವುದು ಎಂದು ತಿಳಿಸಿ. (Please provide your full name, location, and the time of the event.)";
+        } else if (questionCount === 2) {
+          aiResponseText = "ದಾಖಲು ಮಾಡಿಕೊಂಡಿದ್ದೇನೆ. (Understood, cataloging.) ತಪ್ಪಿತಸ್ಥ ಶಂಕಿತನ ಉಡುಪು, ವಯಸ್ಸು ಅಥವಾ ಇನ್ನಾವುದೇ ವಿವರ ನಿಮ್ಮ ನೆನಪಿನಲ್ಲಿದೆಯೇ? (Do you recall the suspect's age, clothes, or appearance?)";
+        } else if (questionCount === 3) {
+          aiResponseText = "ಮಹತ್ವದ ಮಾಹಿತಿ. (Helpful details.) ಘಟನೆಯ ಸಂದರ್ಭದಲ್ಲಿ ಅವರು ಯಾವ ಬೈಕ್ ಅಥವಾ ವಾಹನ ಬಳಸುತ್ತಿದ್ದರು? ಅದರ ನಂಬರ್ ಅಥವಾ ಮಾಡೆಲ್ ನೆನಪಿದೆಯೇ? (Was there a getaway vehicle? Color, mode, model, or license plate?)";
+        } else if (questionCount === 4) {
+          aiResponseText = "ದಯವಿಟ್ಟು ತಿಳಿಸಿ, ಘಟನೆಯ ಬಳಿ ಯಾವುದಾದರೂ ಸಾಕ್ಷಿಗಳು ಅಥವಾ ಸಾಕ್ಷ್ಯಗಳು ಲಭ್ಯವಿದೆಯೇ? (Are there any eyewitnesses, camera footage, or physical evidence near the location?)";
+        } else {
+          aiResponseText = "ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವರದಿಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ. ವಿವರಗಳನ್ನು ಕೆಳಗಿನ ಅಧಿಕೃತ ಇಂಟೆಲಿಜೆನ್ಸ್ ಕಾರ್ಡ್ನಲ್ಲಿ ವೀಕ್ಷಿಸಬಹುದು. (Thank you. Your cognitive synthesis report has been parsed and constructed. Please view the official dispatch card printed below.)\n\n```json\n{\n  \"incident_type\": \"Snatching & Extortion\",\n  \"victim_name\": \"" + (updatedMessages.find(m => m.sender === "user")?.text.slice(0, 25) || "Pranesh Gowda") + "\",\n  \"location\": \"Indiranagar Main Rd, Colony Block, Bengaluru\",\n  \"suspect_description\": \"20-25 years old male, wearing neon green helmet and red jacket\",\n  \"vehicle_details\": \"Red pulsar with plate starting KA-03-M\",\n  \"urgency_level\": \"CRITICAL DISPATCH PRE-EMINENT\",\n  \"summary\": \"The victim was intimidated by a motorcycle-borne snatching assailant. Coordinates aligned with known South Bengaluru chain-snatch gang corridors. Auto dispatch is notifying Officer Ravi and Officer Kumar to construct barricades immediately.\"\n}\n```";
+          isReportFinalized = true;
+        }
+      } else {
+        const systemPrompt = `You are a compassionate Karnataka Police interview assistant.
+Your goal is to gather:
+* Who (victim name)
+* What (incident type)
+* When
+* Where
+* Suspect Description
+* Vehicle Information
+* Evidence
+Ask natural follow-up questions. Avoid robotic language. Speak in warm combinations of simplified English and Karnataka native dialect (translating or transliterating where natural, like "Namaskara", "Dhanyavadagalu").
+
+CRITICAL INSTRUCTION:
+Once you have collected the core details (or if the user says "finish", "compile report", or is at the end), thank the civilian warmly and generate a finalized JSON structured report wrapped exactly inside a markdown json block:
+\`\`\`json
+{
+  "incident_type": "[Incident type]",
+  "victim_name": "[Victim's name]",
+  "location": "[Location]",
+  "suspect_description": "[Suspect traits]",
+  "vehicle_details": "[Vehicle model/plate]",
+  "urgency_level": "[HIGH / MEDIUM / LOW]",
+  "summary": "[Compassionate executive intelligence police report summary]"
+}
+\`\`\``;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: systemPrompt + '\n\nConversation So Far:\n' + conversationHistory + '\n\nPlease generate follow-up questions or final report.' }]
+              }],
+              generationConfig: {
+                temperature: 0.25,
+                maxOutputTokens: 900
+              }
+            })
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            aiResponseText = data.candidates[0].content.parts[0].text;
+            if (aiResponseText.includes("```json")) {
+              isReportFinalized = true;
+            }
+          } else {
+            throw new Error("Unable to parse API text output.");
+          }
+        } else {
+          throw new Error("Failed response from Gemini.");
+        }
+      }
+
+      const aiMsgId = Math.random().toString(36).substring(7);
+      const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (isReportFinalized || aiResponseText.includes("```json")) {
+        const match = aiResponseText.match(/```json\s*([\s\S]+?)\s*```/);
+        if (match && match[1]) {
+          try {
+            const parsed = JSON.parse(match[1]);
+            setInterviewReport(parsed);
+            playTacticalSound("success");
+            showToast("👮 INTELLIGENCE BRIEF SUCCESSFULLY GENERATED!");
+          } catch (e) {
+            console.error("JSON formatting issue", e);
+          }
+        }
+      }
+
+      const strippedText = aiResponseText.split("```json")[0].trim();
+
+      setAiInterviewMessages(prev => [
+        ...prev,
+        { id: aiMsgId, sender: "ai" as const, text: strippedText || aiResponseText, timestamp: aiTimestamp }
+      ]);
+
+      if (isInterviewSpeechEnabled && window.speechSynthesis) {
+        const ut = new SpeechSynthesisUtterance(strippedText || aiResponseText);
+        ut.lang = "en-IN";
+        window.speechSynthesis.speak(ut);
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      const aiMsgId = Math.random().toString(36).substring(7);
+      const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setAiInterviewMessages(prev => [
+        ...prev,
+        { id: aiMsgId, sender: "ai" as const, text: `⚠️ KSP ONLINE GATEWAY STANDBY: Successfully running in local offline interview diagnostic block.`, timestamp: aiTimestamp }
+      ]);
+    } finally {
+      setIsInterviewTyping(false);
+    }
+  };
 
   // Automated Scenario Playbacks for Hackathon Presentation
   const handleScenario1 = () => {
@@ -1230,6 +1690,11 @@ RESPONSE RULES:
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
 
+  // Tactical Dispatch & Tracking map references
+  const tacticalMapContainerRef = useRef<HTMLDivElement | null>(null);
+  const tacticalMapInstanceRef = useRef<any>(null);
+  const tacticalMarkersRef = useRef<any[]>([]);
+
   // Register click callback for Leaflet popup actions
   useEffect(() => {
     (window as any).kspViewFir = (firNo: string) => {
@@ -1903,8 +2368,8 @@ RESPONSE RULES:
     }
 
     // Determine Map Center based on District
-    let center: [number, number] = [12.9716, 77.5946]; // Default Bengaluru
-    let zoom = 11;
+    let center: [number, number] = [15.3173, 75.7139]; // Default Karnataka center
+    let zoom = 7.5;
 
     if (scenarioHighlight === "scenario3") {
       center = [12.9352, 77.6245]; // Centered at Koramangala
@@ -1917,12 +2382,18 @@ RESPONSE RULES:
       }
     }
 
+    // Set max bounds to restrict view strictly to Karnataka
+    const bounds = L.latLngBounds([11.0, 73.5], [19.0, 79.0]);
+
     // Initialize Map
     const map = L.map(mapContainerRef.current, {
       center: center,
       zoom: zoom,
       zoomControl: false,
-      attributionControl: false
+      attributionControl: false,
+      maxBounds: bounds,
+      minZoom: 6,
+      maxZoom: 18
     });
 
     mapInstanceRef.current = map;
@@ -2233,6 +2704,240 @@ RESPONSE RULES:
     };
 
   }, [activeTab, mapViewMode, mapCrimeType, mapTimeFilter, mapDistrict, scenarioHighlight]);
+
+  // --- TACTICAL DISPATCH & TRACKING LEAFLET MAP EFFECTS ---
+  useEffect(() => {
+    if (activeTab !== "Tactical Dispatch" || !tacticalMapContainerRef.current) {
+      return () => {
+        if (tacticalMapInstanceRef.current) {
+          try {
+            tacticalMapInstanceRef.current.remove();
+          } catch (e) {
+            console.error("Tactical Leaflet unmount error", e);
+          }
+          tacticalMapInstanceRef.current = null;
+        }
+      };
+    }
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    if (tacticalMapInstanceRef.current) {
+      try {
+        tacticalMapInstanceRef.current.remove();
+      } catch (e) {
+        console.error("Tactical Leaflet rebuild error", e);
+      }
+      tacticalMapInstanceRef.current = null;
+    }
+
+    // Set max bounds to restrict view strictly to Karnataka
+    const bounds = L.latLngBounds([11.0, 73.5], [19.0, 79.0]);
+
+    // Centered at Karnataka state center
+    const map = L.map(tacticalMapContainerRef.current, {
+      center: [15.3173, 75.7139],
+      zoom: 7.5,
+      zoomControl: false,
+      attributionControl: false,
+      maxBounds: bounds,
+      minZoom: 6,
+      maxZoom: 18
+    });
+
+    tacticalMapInstanceRef.current = map;
+
+    // Add Dark Mode tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // Map Click Handler for deploying items
+    map.on("click", (e: any) => {
+      setClickedMapPoint({ lat: e.latlng.lat, lng: e.latlng.lng });
+      playTacticalSound("click");
+    });
+
+    return () => {
+      if (tacticalMapInstanceRef.current) {
+        try {
+          tacticalMapInstanceRef.current.remove();
+        } catch (e) {
+          console.error("Tactical Leaflet cleanup error", e);
+        }
+        tacticalMapInstanceRef.current = null;
+      }
+    };
+  }, [activeTab]);
+
+  // Manage tactical map markers dynamically
+  useEffect(() => {
+    const map = tacticalMapInstanceRef.current;
+    if (!map) return;
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    // Clear old markers
+    tacticalMarkersRef.current.forEach((m: any) => {
+      try {
+        m.remove();
+      } catch (err) {}
+    });
+    tacticalMarkersRef.current = [];
+
+    const newMarkers: any[] = [];
+
+    // 1. Draw Officers
+    officers.forEach((officer) => {
+      let colorClass = "border-cyan-500 bg-cyan-950/90 text-cyan-400";
+      let statusText = "Standby";
+      if (officer.status === "On Patrol") {
+        colorClass = "border-emerald-500 bg-emerald-950/90 text-emerald-400";
+        statusText = "Patrolling";
+      } else if (officer.status === "Responding") {
+        colorClass = "border-amber-400 bg-amber-950/95 text-amber-300 animate-pulse";
+        statusText = "🚨 RESPONDING";
+      }
+
+      const customIcon = L.divIcon({
+        html: `
+          <div class="flex flex-col items-center justify-center relative">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 ${colorClass} shadow-lg shadow-black font-bold transition-transform hover:scale-125">
+              <i class="fa-solid fa-user-shield text-[10px]"></i>
+            </div>
+            <div class="absolute -bottom-6 bg-slate-950/90 border border-slate-700/60 rounded px-1 py-0.5 text-[8px] text-white font-mono font-bold whitespace-nowrap shadow-md">
+              ${officer.name}
+            </div>
+          </div>
+        `,
+        className: 'custom-officer-div-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+
+      const popupHtml = `
+        <div class="p-2 space-y-1 my-1 text-xs select-none" style="min-width: 185px; font-family: Inter, sans-serif;">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+            <span class="font-bold text-sky-400 text-xs">${officer.name}</span>
+            <span class="px-1.5 py-0.5 rounded text-[8px] font-mono bg-slate-800 text-slate-300 font-bold">${officer.id}</span>
+          </div>
+          <p class="text-[10px] text-slate-200">🚩 <b>Status:</b> <span class="text-amber-400 font-semibold">${statusText}</span></p>
+          <p class="text-[9px] text-[#94a3b8] font-mono">📍 ${officer.lat.toFixed(5)}, ${officer.lng.toFixed(5)}</p>
+        </div>
+      `;
+
+      const marker = L.marker([officer.lat, officer.lng], { icon: customIcon })
+        .bindPopup(popupHtml, { className: 'ksp-dark-dark-popup' })
+        .addTo(map);
+
+      newMarkers.push(marker);
+    });
+
+    // 2. Draw Incidents
+    tacticalIncidents.forEach((incident) => {
+      const customIcon = L.divIcon({
+        html: `
+          <div class="flex flex-col items-center justify-center relative">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-red-500 bg-red-950/95 text-red-500 animate-bounce shadow-lg shadow-red-500/40">
+              <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+            </div>
+            <div class="absolute -bottom-6 bg-red-950/95 border border-red-900 rounded px-1 py-0.5 text-[8px] text-red-300 font-mono font-bold whitespace-nowrap shadow-md">
+              🚨 ${incident.type}
+            </div>
+          </div>
+        `,
+        className: 'custom-incident-div-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+
+      const popupHtml = `
+        <div class="p-2 space-y-1 my-1 text-xs select-none" style="min-width: 200px; font-family: Inter, sans-serif;">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+            <span class="font-bold text-red-400 text-xs">MOCK INCIDENT</span>
+            <span class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border border-red-900 bg-red-950/60 text-red-400">ACTIVE DISPATCH</span>
+          </div>
+          <p class="text-[10px] text-slate-200">🔖 <b>Type:</b> ${incident.type}</p>
+          <p class="text-[10px] text-slate-200">🆔 <b>Incident Code:</b> ${incident.id}</p>
+          <p class="text-[10px] text-slate-200">👥 <b>Assigned Officers:</b> <span class="text-sky-400 font-bold">${incident.assignedOfficers.join(", ")}</span></p>
+          <p class="text-[9px] text-[#94a3b8] font-mono">📍 ${incident.lat.toFixed(5)}, ${incident.lng.toFixed(5)}</p>
+        </div>
+      `;
+
+      const marker = L.marker([incident.lat, incident.lng], { icon: customIcon })
+        .bindPopup(popupHtml, { className: 'ksp-dark-dark-popup' })
+        .addTo(map);
+
+      newMarkers.push(marker);
+    });
+
+    // 3. Draw Barricades
+    barricades.forEach((barricade) => {
+      const customIcon = L.divIcon({
+        html: `
+          <div class="flex flex-col items-center justify-center relative border-0">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-amber-500 bg-amber-950/95 text-amber-500 shadow-lg shadow-black/80">
+              <i class="fa-solid fa-road-barrier text-xs"></i>
+            </div>
+            <div class="absolute -bottom-6 bg-amber-950/95 border border-amber-900 rounded px-1 py-0.5 text-[8px] text-white font-mono font-bold whitespace-nowrap shadow-md">
+              Checkpoint
+            </div>
+          </div>
+        `,
+        className: 'custom-barricade-div-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+
+      const popupHtml = `
+        <div class="p-2 space-y-1 my-1 text-xs select-none" style="min-width: 180px; font-family: Inter, sans-serif;">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+            <span class="font-bold text-amber-500 text-xs">BARRICADE ACTIVE</span>
+            <span class="px-1.5 py-0.5 rounded text-[8px] font-mono bg-slate-800 text-slate-300 font-bold">${barricade.id}</span>
+          </div>
+          <p class="text-[10px] text-slate-200">🚧 <b>Name:</b> ${barricade.name}</p>
+          <p class="text-[10px] text-slate-300">👮 <b>Deployed By:</b> ${barricade.officerName}</p>
+          <p class="text-[10px] text-slate-300">🕒 <b>Time:</b> ${barricade.timestamp}</p>
+          <p class="text-[9px] text-[#94a3b8] font-mono">📍 ${barricade.lat.toFixed(5)}, ${barricade.lng.toFixed(5)}</p>
+        </div>
+      `;
+
+      const marker = L.marker([barricade.lat, barricade.lng], { icon: customIcon })
+        .bindPopup(popupHtml, { className: 'ksp-dark-dark-popup' })
+        .addTo(map);
+
+      newMarkers.push(marker);
+    });
+
+    // 4. Draw Selected Map Point marker
+    if (clickedMapPoint) {
+      const customIcon = L.divIcon({
+        html: `
+          <div class="flex flex-col items-center justify-center relative">
+            <div class="flex items-center justify-center w-6 h-6 rounded-full border border-dashed border-white bg-slate-900/60 text-white animate-pulse">
+              <i class="fa-solid fa-crosshairs text-[10px]"></i>
+            </div>
+          </div>
+        `,
+        className: 'custom-clicked-point-div-icon',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([clickedMapPoint.lat, clickedMapPoint.lng], { icon: customIcon })
+        .addTo(map);
+
+      newMarkers.push(marker);
+    }
+
+    tacticalMarkersRef.current = newMarkers;
+
+  }, [officers, tacticalIncidents, barricades, clickedMapPoint]);
 
   // Filter Data based on selected district
   const filteredCases = selectedDistrict === "All Districts" 
@@ -2629,6 +3334,9 @@ RESPONSE RULES:
     { name: "Network Analysis", knName: "ನೆಟ್ವರ್ಕ್", icon: "fa-circle-nodes", badge: null },
     { name: "Crime Map", knName: "ನಕ್ಷೆ", icon: "fa-map-location-dot", badge: null },
     { name: "Repeat Offenders", knName: "ಮರು ಅಪರಾಧಿಗಳು", icon: "fa-users-slash", badge: null },
+    { name: "Tactical Dispatch", knName: "ಯುದ್ಧತಂತ್ರದ ರವಾನೆ", icon: "fa-crosshairs", badge: "LIVE" },
+    { name: "AI Interviewer", knName: "ಎಐ ಸಂದರ್ಶಕ", icon: "fa-microphone", badge: "KANNADA" },
+    { name: "Social Media SOS Bridge", knName: "ಸೋಷಿಯಲ್ ಸೇಫ್", icon: "fa-share-nodes", badge: "SOCIAL" },
     { name: "Trend Analysis", knName: "ಟ್ರೆಂಡ್ ವಿಶ್ಲೇಷಣೆ", icon: "fa-chart-bar", badge: null },
     { name: "AI Assistant", knName: "ಎಐ ಸಹಾಯಕ", icon: "fa-robot", badge: "AI" },
     { name: "Security & Quality", knName: "ಸುರಕ್ಷತೆ", icon: "fa-fingerprint", badge: "SEC" },
@@ -5538,8 +6246,884 @@ RESPONSE RULES:
             </div>
           )}
 
+          {/* TACTICAL DISPATCH MODULE */}
+          {activeTab === "Tactical Dispatch" && (
+            <div className="space-y-6 animate-fade-in text-left">
+              <div className="flex flex-col lg:flex-row gap-6">
+                
+                {/* Map Section */}
+                <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl flex flex-col">
+                  {/* Map Header */}
+                  <div className="p-4 bg-slate-900/50 border-b border-[#1e293b] flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <div>
+                        <h2 className="text-sm font-bold tracking-wider text-slate-100 uppercase font-sans">KSP TACTICAL OFFICER FLEET RADAR</h2>
+                        <p className="text-[10px] text-slate-400">Map interaction enabled • Select points to deploy barricades</p>
+                      </div>
+                    </div>
+                    {clickedMapPoint ? (
+                      <span className="text-[9px] font-mono text-cyan-400 font-bold bg-cyan-950/50 border border-cyan-800/50 px-2 py-0.5 rounded leading-none">
+                        PINNED: {clickedMapPoint.lat.toFixed(4)}, {clickedMapPoint.lng.toFixed(4)}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-mono text-slate-500 bg-slate-950/40 px-2 py-0.5 rounded leading-none">
+                        CLICK MAP TO PIN COORDINATES
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Quick-Focus Hubs Panel */}
+                  <div className="bg-slate-950/80 px-4 py-3.5 border-b border-[#1e293b] flex flex-wrap items-center gap-2 text-xs select-none">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mr-1">📍 TACTICAL ZOOM:</span>
+                    {[
+                      { name: "STATE OF KARNATAKA", lat: 15.3173, lng: 75.7139, zoom: 7.5 },
+                      { name: "BENGALURU", lat: 12.9716, lng: 77.5946, zoom: 12 },
+                      { name: "MYSURU", lat: 12.3051, lng: 76.6551, zoom: 12 },
+                      { name: "MANGALURU", lat: 12.8654, lng: 74.8426, zoom: 12 },
+                      { name: "HUBLI-DHARWAD", lat: 15.3647, lng: 75.1240, zoom: 12 },
+                      { name: "BELAGAVI", lat: 15.8497, lng: 74.4977, zoom: 12 },
+                      { name: "KALABURAGI", lat: 17.3297, lng: 76.8343, zoom: 12 }
+                    ].map((hub, hIdx) => (
+                      <button
+                        key={hIdx}
+                        onClick={() => {
+                          if (tacticalMapInstanceRef.current) {
+                            tacticalMapInstanceRef.current.flyTo([hub.lat, hub.lng], hub.zoom, { animate: true, duration: 1.5 });
+                            playTacticalSound("click");
+                            showToast(`✈️ Flying tactical radar focus to ${hub.name}...`);
+                          }
+                        }}
+                        className="bg-[#111827] hover:bg-[#1e293b] text-slate-300 hover:text-white border border-[#1e293b] px-3 py-1 rounded-[4px] text-[10px] font-mono font-bold transition-all active:scale-95 duration-150"
+                      >
+                        {hub.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Leaflet Map Housing Container */}
+                  <div className="relative w-full" style={{ minHeight: "530px" }}>
+                    <div ref={tacticalMapContainerRef} className="w-full h-full absolute inset-0 bg-[#070b14]" id="ksp-tactical-dispatch-map"></div>
+                    
+                    {/* Floating map coordination utility */}
+                    {clickedMapPoint && (
+                      <div className="absolute top-4 right-4 z-[999] bg-slate-950/95 border border-cyan-800/50 rounded-xl p-4 shadow-xl max-w-xs space-y-3">
+                        <div className="flex items-center justify-between border-b border-cyan-900 pb-1.5">
+                          <span className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-widest">Deploy Command</span>
+                          <button onClick={() => setClickedMapPoint(null)} className="text-[#94a3b8] hover:text-white font-bold text-xs">✕</button>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-[10px] text-slate-300 leading-normal font-mono">
+                            Set barricade coordinate: <span className="text-white font-bold">{clickedMapPoint.lat.toFixed(5)}, {clickedMapPoint.lng.toFixed(5)}</span>
+                          </p>
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-bold text-slate-400 uppercase font-mono tracking-wider block">Barricade / Checkpoint Name</label>
+                            <input 
+                              type="text" 
+                              id="barricade-name-field"
+                              placeholder="e.g. Richmond Circle Check" 
+                              className="w-full bg-[#111827] border border-cyan-900/60 rounded px-2 py-1 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-bold text-slate-400 uppercase font-mono tracking-wider block">Assigned Officer</label>
+                            <select 
+                              id="barricade-officer-field"
+                              className="w-full bg-[#111827] border border-cyan-900/60 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-400"
+                            >
+                              {officers.map(o => (
+                                <option key={o.id} value={o.name}>{o.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const nameEl = document.getElementById("barricade-name-field") as HTMLInputElement;
+                              const officerEl = document.getElementById("barricade-officer-field") as HTMLSelectElement;
+                              handleDeployBarricade(nameEl?.value, officerEl?.value);
+                            }}
+                            className="w-full bg-cyan-600 hover:bg-cyan-500 font-bold border border-cyan-500/50 rounded py-1.5 text-slate-100 uppercase tracking-widest text-[9px] shadow-lg shadow-cyan-600/20 active:scale-95 transition-all"
+                          >
+                            Deploy Barricade
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Panel Control Station */}
+                <div className="w-full lg:w-[380px] space-y-6 flex flex-col">
+                  
+                  {/* Fleet Control Board */}
+                  <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4.5 space-y-4 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                      <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">KP OFFICER TELEMETRY</span>
+                      <button 
+                        onClick={handleSimulateMovement}
+                        className="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-400 border border-indigo-800/50 rounded px-2.5 py-1 text-[9px] font-mono font-bold uppercase transition-all tracking-wide flex items-center gap-1.5 active:scale-95 shadow-md animate-pulse"
+                      >
+                        <i className="fa-solid fa-satellite-dish"></i>
+                        <span>Simulate Patrol</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
+                      {officers.map((officer) => (
+                        <div key={officer.id} className="bg-slate-900/50 border border-[#1e293b]/75 rounded-lg p-2.5 flex items-center justify-between text-xs transition-colors hover:border-slate-700">
+                          <div className="flex items-center space-x-2.5">
+                            <div className={`w-2.5 h-2.5 rounded-full ${
+                              officer.status === "Responding" ? "bg-amber-400 animate-pulse scale-125" : officer.status === "On Patrol" ? "bg-emerald-500" : "bg-cyan-500"
+                            }`}></div>
+                            <div>
+                              <p className="font-bold text-slate-100 leading-none">{officer.name}</p>
+                              <p className="text-[8.5px] font-mono text-slate-400 mt-0.5">{officer.id} • {officer.lat.toFixed(4)}, {officer.lng.toFixed(4)}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <span className={`px-2 py-0.5 rounded-[4px] text-[8.5px] font-mono font-black uppercase ${
+                              officer.status === "Responding" 
+                                ? "bg-amber-950/40 text-amber-300 border border-amber-900/40" 
+                                : officer.status === "On Patrol" 
+                                ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" 
+                                : "bg-cyan-950/40 text-cyan-400 border border-cyan-900/40"
+                            }`}>
+                              {officer.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Incident Dispatch Command */}
+                  <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4.5 space-y-4 shadow-xl flex-1 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                        <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">SMART INCIDENT DISPATCH</span>
+                        <span className="text-[8px] font-mono text-red-400 bg-red-950 border border-red-900 px-1.5 py-0.5 rounded leading-none font-bold">READY</span>
+                      </div>
+
+                      <button 
+                        onClick={handleCreateMockIncident}
+                        className="w-full bg-red-950/70 hover:bg-red-900/70 text-red-300 border border-red-800/40 rounded-xl p-3 text-xs font-bold uppercase transition-all tracking-wider flex items-center justify-center gap-2 shadow-lg hover:shadow-red-950/20 active:scale-95"
+                      >
+                        <i className="fa-solid fa-triangle-exclamation text-red-500 animate-pulse text-sm"></i>
+                        <span>Create Mock Incident</span>
+                      </button>
+
+                      {/* Display Incidents list */}
+                      <div className="space-y-2 overflow-y-auto max-h-[140px] pr-1">
+                        {tacticalIncidents.length === 0 ? (
+                          <div className="h-[90px] flex flex-col items-center justify-center text-slate-500 border border-dashed border-[#1e293b] rounded-lg text-[10px] uppercase tracking-wide">
+                            <i className="fa-solid fa-folder-open text-xs mb-1"></i>
+                            <span>No active mock incidents</span>
+                          </div>
+                        ) : (
+                          tacticalIncidents.map((inc) => (
+                            <div key={inc.id} className="bg-[#1c1917]/30 border border-red-900/30 rounded-lg p-2.5 space-y-1.5 text-xs text-left">
+                              <div className="flex items-center justify-between border-b border-red-950/50 pb-1">
+                                <span className="font-bold text-red-400 bg-red-950/40 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">{inc.type}</span>
+                                <span className="text-[8.5px] font-mono text-slate-400 font-bold">{inc.time}</span>
+                              </div>
+                              <div className="space-y-1 text-[9.5px]">
+                                <p className="text-slate-300"><b>Coords:</b> {inc.lat.toFixed(4)}, {inc.lng.toFixed(4)}</p>
+                                <p className="text-[#a1a1aa]">🚁 <b>Nearest Assigned Units:</b></p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {inc.assignedOfficers.map((name, nIdx) => (
+                                    <span key={nIdx} className="bg-sky-950 border border-sky-900 text-sky-400 font-bold px-1.5 py-0.2 rounded text-[8.5px] font-mono">{name}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Standby Status Overview card */}
+                    <div className="pt-3 border-t border-[#1e293b]/50 text-left">
+                      <span className="text-[7.5px] text-slate-500 uppercase tracking-widest font-black font-mono block mb-1">Standby Patrol Units</span>
+                      <div className="flex flex-wrap gap-1">
+                        {officers.filter(o => o.status !== "Responding").map((o) => (
+                          <span key={o.id} className="px-1.5 py-0.5 bg-slate-900/70 border border-slate-800 text-slate-400 rounded text-[8px] font-mono">
+                            {o.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barricades Registry */}
+                  <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4.5 space-y-4 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-[#1e293b] pb-2">
+                      <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">ACTIVE ROADBLOCKS</span>
+                      <span className="text-[9px] font-mono font-bold text-amber-500 bg-amber-950 px-2 rounded-full leading-none">{barricades.length}</span>
+                    </div>
+
+                    <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                      {barricades.length === 0 ? (
+                        <p className="text-[10px] text-slate-500 text-center py-4 font-mono">NO ACTIVE ROADBLOCKS DEPLOYED</p>
+                      ) : (
+                        barricades.map((bar) => (
+                          <div key={bar.id} className="bg-slate-900/40 border border-[#1e293b]/50 rounded-lg p-2.5 text-xs text-left space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-200">{bar.name}</span>
+                              <button 
+                                onClick={() => handleRemoveBarricade(bar.id)}
+                                className="text-[8.5px] text-red-400 hover:text-red-300 font-mono underline"
+                              >
+                                Dismantle
+                              </button>
+                            </div>
+                            <div className="flex justify-between items-center text-[8.5px] text-slate-405 font-mono">
+                              <span>By: {bar.officerName}</span>
+                              <span>{bar.timestamp}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* KANNADA AI INTERVIEWER MODULE */}
+          {activeTab === "AI Interviewer" && (
+            <div className="space-y-6 animate-fade-in text-left">
+              <div className="flex flex-col lg:flex-row gap-6">
+                
+                {/* Chat Panel */}
+                <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl flex flex-col h-[580px]">
+                  {/* Chat Header */}
+                  <div className="p-4 bg-slate-900/50 border-b border-[#1e293b] flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-9 h-9 rounded-full bg-indigo-950/75 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                        <i className="fa-solid fa-headset text-sm"></i>
+                      </div>
+                      <div>
+                        <h2 className="text-sm font-bold tracking-wider text-slate-100 uppercase">KSP CITIZEN AI COGNITIVE HELPLINE</h2>
+                        <p className="text-[10px] text-slate-400">Conversational Incident Interviewer • Multilingual Speech Integration</p>
+                      </div>
+                    </div>
+
+                    {/* Speech toggles */}
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => {
+                          setIsInterviewSpeechEnabled(!isInterviewSpeechEnabled);
+                          showToast(isInterviewSpeechEnabled ? "🔊 Voice output disabled." : "🔊 Kannada/English voice synthesis activated!");
+                        }}
+                        className={`px-2.5 py-1 rounded text-[9px] font-mono font-bold uppercase transition-all tracking-wide flex items-center gap-1.5 border ${
+                          isInterviewSpeechEnabled 
+                            ? "bg-indigo-950 text-indigo-400 border-indigo-705" 
+                            : "bg-slate-950/40 text-slate-500 border-[#1e293b]"
+                        }`}
+                        title="Toggle Text-to-Speech Output"
+                      >
+                        <i className={`fa-solid ${isInterviewSpeechEnabled ? "fa-volume-high animate-bounce" : "fa-volume-xmark"}`}></i>
+                        <span>{isInterviewSpeechEnabled ? "Speech ON" : "Mute AI"}</span>
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          setAiInterviewMessages([{
+                            id: "interview-init",
+                            sender: "ai",
+                            text: "ಕರಾಪುರ ಸಹಾಯಕ ಪೊಲೀಸ್ ಎಐಗೆ ಸುಸ್ವಾಗತ. Welcome to the Compassionate Karnataka Police Incident Interview Assistant. \n\nನಮಸ್ಕಾರ, ನಾನು ನಿಮಗೆ ಘಟನೆಯ ವಿವರಗಳನ್ನು ದಾಖಲಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು ಹೇಳಿ, ಏನು ಸಂಭವಿಸಿದೆ? (Please tell me, what happened?)",
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          }]);
+                          setInterviewReport(null);
+                          playTacticalSound("beep");
+                          showToast("Conversation logs reset.");
+                        }}
+                        className="bg-slate-950/40 border border-[#1e293b] text-[#94a3b8] hover:text-white rounded px-2 py-1 text-[9px] font-mono tracking-wide"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Messages Bubble Frame */}
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#090d16]/30">
+                    {aiInterviewMessages.map((msg) => (
+                      <div 
+                        key={msg.id} 
+                        className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}
+                      >
+                        {msg.sender === "ai" && (
+                          <div className="w-7 h-7 rounded-full bg-[#1e1b4b] border border-indigo-900 flex flex-shrink-0 items-center justify-center text-indigo-400 text-[10px] font-black">
+                            KP
+                          </div>
+                        )}
+                        <div className={`max-w-[80%] rounded-xl px-3 py-2.5 text-xs text-left ${
+                          msg.sender === "user" 
+                            ? "bg-indigo-600 border border-indigo-500/50 text-slate-100 rounded-tr-none" 
+                            : "bg-slate-900/90 border border-[#1e293b] text-slate-100 rounded-tl-none line-clamp-none"
+                        }`}>
+                          <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                          <span className="block text-[8px] font-mono text-slate-400 mt-1.5 text-right">{msg.timestamp}</span>
+                        </div>
+                        {msg.sender === "user" && (
+                          <div className="w-7 h-7 rounded-full bg-indigo-900/30 border border-indigo-500/20 flex flex-shrink-0 items-center justify-center text-indigo-300 text-[10px] font-black">
+                            U
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {isInterviewTyping && (
+                      <div className="flex justify-start items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-[#1e1b4b] border border-indigo-950 flex flex-shrink-0 items-center justify-center text-indigo-400 text-[10px]">
+                          <i className="fa-solid fa-circle-notch animate-spin"></i>
+                        </div>
+                        <div className="bg-slate-900 border border-[#1e293b]/70 rounded-xl rounded-tl-none px-3 py-2 text-slate-400 text-xs animate-pulse">
+                          Assistant is compiling notes...
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Input Block footer */}
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleCommitInterviewMessage(aiInterviewInput);
+                    }} 
+                    className="p-3 bg-slate-900/40 border-t border-[#1e293b] flex items-center space-x-2 flex-shrink-0"
+                  >
+                    {/* Kannada/English Voice Speech Recognition Mic Button */}
+                    <button 
+                      type="button"
+                      onClick={handleStartSpeechRecognition}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all active:scale-90 ${
+                        recognitionStatus === "listening" 
+                          ? "bg-red-950 border-red-500 text-red-400 animate-pulse" 
+                          : "bg-slate-950/60 border-[#1e293b] text-[#94a3b8] hover:text-white"
+                      }`}
+                      title="Speak in Kannada/English (Voice Typing)"
+                    >
+                      <i className={`fa-solid ${recognitionStatus === "listening" ? "fa-microphone-lines" : "fa-microphone"}`}></i>
+                    </button>
+
+                    <input 
+                      type="text"
+                      value={aiInterviewInput}
+                      onChange={(e) => setAiInterviewInput(e.target.value)}
+                      placeholder="Type response, transliterated Kannada, or talk into mic..."
+                      className="flex-1 bg-slate-950/80 border border-[#1e293b] rounded-full px-4 h-9 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    />
+
+                    <button 
+                      type="submit"
+                      disabled={!aiInterviewInput.trim()}
+                      className="w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-slate-100 flex items-center justify-center active:scale-95 disabled:opacity-40 disabled:hover:bg-indigo-600 transition-all font-bold"
+                    >
+                      <i className="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                  </form>
+                </div>
+
+                {/* Cognitive Synthesis Document Block */}
+                <div className="w-full lg:w-[410px] bg-[#111827] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl flex flex-col h-[580px]">
+                  <div className="p-4 bg-slate-900/50 border-b border-[#1e293b] flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                      <span className="text-[11px] font-bold text-slate-100 uppercase tracking-wider font-mono">INCIDENT INTEL SYNTHESIS</span>
+                    </div>
+                    {interviewReport && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(JSON.stringify(interviewReport, null, 2));
+                            showToast("📋 Report copied to clipboard!");
+                          }
+                        }}
+                        className="text-[9px] font-mono copy-btn-report uppercase bg-emerald-950/50 border border-emerald-900/60 px-2 py-0.5 rounded text-emerald-400 hover:bg-emerald-900/50 font-bold"
+                      >
+                        Copy Report
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex-1 p-5 overflow-y-auto space-y-5 text-xs text-left">
+                    {!interviewReport ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-3 px-4 border border-dashed border-[#1e293b] rounded-xl bg-slate-950/10">
+                        <div className="text-3xl text-indigo-950/60 font-black font-serif">KSP</div>
+                        <p className="text-[10px] uppercase tracking-wide font-mono font-bold text-slate-500 leading-normal">
+                          Waiting for interviewer cognitive synthesis...
+                        </p>
+                        <p className="text-[9px] text-slate-600 leading-relaxed">
+                          Provide at least 4 answers to the KSP conversational Assistant or request "compile report" to synthesize this brief.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 animate-fade-in">
+                        
+                        {/* Indian State Police Emblem Stamp Badge */}
+                        <div className="flex items-center justify-between border-b border-dashed border-[#1e293b]/70 pb-3">
+                          <div>
+                            <div className="text-[8px] font-mono font-bold tracking-widest text-emerald-400 uppercase">PRAGATI REPORT • SECURE</div>
+                            <h4 className="text-[10px] font-black text-slate-100 uppercase tracking-tight font-sans">KARNATAKA POLICE COGNITIVE ADVISORY</h4>
+                          </div>
+                          <span className="px-2 py-0.5 bg-red-950/60 border border-red-900/60 rounded text-[8px] font-mono text-red-400 font-bold">
+                            ⚠️ IMMEDIATE BRIEF
+                          </span>
+                        </div>
+
+                        {/* Dispatch Attributes Columns */}
+                        <div className="space-y-2.5">
+                          <div className="grid grid-cols-2 gap-3 pb-2.5 border-b border-[#1e293b]/50">
+                            <div>
+                              <span className="text-[8px] text-slate-505 uppercase font-mono block">Incident Tag</span>
+                              <span className="text-[11px] font-semibold text-slate-300">{interviewReport.incident_type || "N/A"}</span>
+                            </div>
+                            <div>
+                              <span className="text-[8px] text-slate-505 uppercase font-mono block font-bold text-slate-400">Reporter / Victim</span>
+                              <span className="text-[11px] font-semibold text-slate-300">{interviewReport.victim_name || "N/A"}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 pb-2.5 border-b border-[#1e293b]/50">
+                            <span className="text-[8px] text-slate-505 uppercase font-mono block font-bold text-slate-400">Location Grid</span>
+                            <span className="text-[10.5px] font-semibold text-sky-400">{interviewReport.location || "N/A"}</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pb-2.5 border-b border-[#1e293b]/50">
+                            <div>
+                              <span className="text-[8px] text-slate-505 uppercase font-mono block">Suspect Parameters</span>
+                              <span className="text-[10px] font-medium text-slate-300 leading-tight block">{interviewReport.suspect_description || "N/A"}</span>
+                            </div>
+                            <div>
+                              <span className="text-[8px] text-[#475569] uppercase font-mono block">Getaway Vehicle</span>
+                              <span className="text-[10px] font-medium text-slate-300 leading-tight block">{interviewReport.vehicle_details || "N/A"}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="text-[8px] text-slate-505 uppercase font-mono block">Urgency Categorization</span>
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[8.5px] font-mono font-black border bg-slate-900 border-indigo-900/60 text-indigo-400 uppercase tracking-wider">
+                              {interviewReport.urgency_level || "MEDIUM SURVEILLANCE"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Chunk Summary */}
+                        <div className="bg-slate-900/50 border border-[#1e293b] rounded-lg p-3 space-y-1.5">
+                          <span className="text-[8px] text-indigo-400 uppercase font-mono font-bold tracking-wider block">Cognitive Synthesized Summary</span>
+                          <p className="text-slate-300 text-[10.5px] leading-relaxed font-sans">{interviewReport.summary}</p>
+                        </div>
+
+                        {/* Recommendation Actions */}
+                        <div className="pt-2 border-t border-[#1e293b]/60 flex items-center justify-between">
+                          <div className="flex items-center space-x-1 font-mono text-[8.5px] text-slate-500 uppercase">
+                            <i className="fa-solid fa-fingerprint text-slate-600"></i>
+                            <span>SYSTEM AUTHENTICATED</span>
+                          </div>
+                          <span className="text-[8.5px] font-mono bg-indigo-950/50 border border-indigo-900/40 text-indigo-300 px-2 py-0.5 rounded font-bold">
+                            BLOCK #240.INTEL
+                          </span>
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Warning disclaimer footer */}
+                  <div className="p-3 bg-slate-950/40 border-t border-[#1e293b] text-center text-[8px] font-mono text-slate-500 uppercase tracking-wide flex-shrink-0">
+                    ⚠️ PROTOTYPE PURPOSES ONLY • COGNITIVE SYNTHESIS GATEWAY v2026.1
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* SOCIAL MEDIA SOS BRIDGE MODULE */}
+          {activeTab === "Social Media SOS Bridge" && (
+            <div className="space-y-6 animate-fade-in text-left">
+              {/* Header Title Banner with Ambient Glow */}
+              <div className="relative bg-gradient-to-r from-violet-950 via-slate-900 to-indigo-950 p-6 rounded-2xl border border-violet-500/30 overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl -ml-20 -mb-20"></div>
+                
+                <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-bold font-mono tracking-wider bg-violet-500/25 border border-violet-400/40 text-violet-300 px-2.5 py-0.5 rounded-full uppercase">
+                        Meta Live Core v2.5 (WhatsApp/Instagram)
+                      </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                      <span className="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-widest">SOVEREIGN NETWORK CONNECTED</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-white tracking-tight uppercase">
+                      SOCIAL MEDIA SOS TRIAGE & SENTIMENT DECODER
+                    </h1>
+                    <p className="text-slate-300 text-xs max-w-2xl leading-relaxed">
+                      Bridging recognizable public social channels like <span className="text-emerald-400 font-bold">WhatsApp SOS Broadcasts</span> and <span className="text-violet-300 font-bold">Instagram Distress Stories</span> with the sovereign public safety infrastructure of <span className="text-blue-400 font-bold">Karnataka State Police</span>. Decipher emotional distress posts, route tactical patrols, and empower community safety in real-time.
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={handleSimulateGotchaFlare}
+                    className="flex-shrink-0 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-extrabold px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-all duration-150 transform active:scale-95 shadow-lg shadow-violet-600/35 hover:shadow-violet-600/50 flex items-center space-x-2 border border-violet-400/30 cursor-pointer animate-pulse"
+                  >
+                    <i className="fa-brands fa-whatsapp text-sm text-emerald-400"></i>
+                    <span>Simulate WA/IG SOS Beacon</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid System: Live SOS Feed vs AI Slang Decoder */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                
+                {/* Left: Social Media Live SOS Feed (3/5) */}
+                <div className="lg:col-span-3 bg-[#111827] border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[620px]">
+                  {/* Card Header */}
+                  <div className="p-4 bg-slate-900/50 border-b border-[#1e293b] flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-950/75 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <i className="fa-brands fa-whatsapp text-sm animate-pulse"></i>
+                      </div>
+                      <div>
+                        <h2 className="text-xs font-black tracking-widest text-slate-100 uppercase">ACTIVE SOCIAL EMERGENCY FEEDS (WA/IG)</h2>
+                        <p className="text-[10px] text-slate-400">Real-time distress signals detected from WhatsApp Status & Instagram Stories</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold bg-[#111827] px-2.5 py-1 border border-slate-800 rounded-md text-slate-400">
+                      Alerts: {gotchaFlares.filter(f => f.status === "Pulsing").length} Active • {gotchaFlares.length} Total
+                    </span>
+                  </div>
+
+                  {/* Beacon Queue List */}
+                  <div className="flex-grow p-4 overflow-y-auto space-y-3.5 scrollbar-thin">
+                    {gotchaFlares.map((flare) => (
+                      <div 
+                        key={flare.id}
+                        className={`p-4 border rounded-xl transition-all relative ${
+                          flare.status === "Pulsing"
+                            ? "bg-[#170e28]/70 border-violet-500/40 hover:border-violet-400/60 shadow-[0_4px_20px_rgba(139,92,246,0.06)]"
+                            : flare.status === "Routed"
+                            ? "bg-[#0d1e1c]/70 border-emerald-500/30 text-slate-300"
+                            : "bg-[#111827]/30 border-slate-800 text-slate-500"
+                        }`}
+                      >
+                        {/* Status Glow for Pulsing Beacons */}
+                        {flare.status === "Pulsing" && (
+                          <div className="absolute top-4 right-4 flex items-center space-x-1.5">
+                            <span className="w-2 h-2 rounded-full bg-violet-400 animate-ping"></span>
+                            <span className="text-[8.5px] font-mono font-bold text-violet-400 uppercase tracking-widest">PULSING DISTRESS</span>
+                          </div>
+                        )}
+                        {flare.status === "Routed" && (
+                          <div className="absolute top-4 right-4 flex items-center space-x-1.5">
+                            <i className="fa-solid fa-circle-check text-emerald-400 text-[10px]"></i>
+                            <span className="text-[8.5px] font-mono font-bold text-emerald-400 uppercase tracking-widest">PATROL DEPLOYED</span>
+                          </div>
+                        )}
+                        {flare.status === "Handled" && (
+                          <div className="absolute top-4 right-4 flex items-center space-x-1.5">
+                            <i className="fa-solid fa-circle text-slate-600 text-[8px]"></i>
+                            <span className="text-[8.5px] font-mono font-bold text-slate-500 uppercase tracking-widest">ARCHIVED/RESOLVED</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-2.5">
+                          {/* Top row Info */}
+                          <div className="flex items-center space-x-2">
+                            <div className="w-7 h-7 rounded-full bg-violet-950 border border-violet-500/30 flex items-center justify-center text-xs text-white">
+                              {flare.user.charAt(0)}
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs font-bold text-slate-200">{flare.user} <span className="text-[10px] text-slate-400 font-medium">({flare.age} yrs)</span></div>
+                              <div className="text-[9px] font-mono text-slate-500">ID: {flare.id} &bull; {flare.time}</div>
+                            </div>
+                          </div>
+
+                          {/* Raw Text */}
+                          <div className="p-3 bg-slate-950/50 border border-slate-800/60 rounded-lg text-left">
+                            <span className="text-[8px] font-mono font-bold text-slate-500 uppercase block mb-1">RAW SOCIAL POST / MSG (WA/IG):</span>
+                            <p className="text-xs font-medium text-slate-100 italic">"{flare.text}"</p>
+                          </div>
+
+                          {/* Location Block */}
+                          <div className="flex items-center space-x-1.5 text-[10.5px] text-slate-300 font-medium text-left">
+                            <i className="fa-solid fa-location-dot text-rose-500 text-xs"></i>
+                            <span>{flare.locName}</span>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="pt-2.5 border-t border-slate-800/50 flex flex-wrap gap-2">
+                            <button
+                              onClick={() => {
+                                setGotchaSelectedPreset(flare.text);
+                                setGotchaSlangInput(flare.text);
+                                handleTranslateSlang(flare.text);
+                              }}
+                              className="bg-violet-950/50 hover:bg-violet-900/60 text-violet-300 border border-violet-800/40 px-3 py-1.5 rounded-lg text-[10.5px] font-bold tracking-tight transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-language text-violet-400"></i>
+                              <span>Translate Slang</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                if (tacticalMapInstanceRef.current) {
+                                  setActiveTab("Tactical Dispatch");
+                                  setTimeout(() => {
+                                    if (tacticalMapInstanceRef.current) {
+                                      tacticalMapInstanceRef.current.flyTo([flare.lat, flare.lng], 14, { animate: true, duration: 1.5 });
+                                      playTacticalSound("radar");
+                                      showToast(`✈️ Map focal tracking initialized to social distress coordinate [${flare.lat}, ${flare.lng}]!`);
+                                    }
+                                  }, 300);
+                                } else {
+                                  showToast("Please open the Tactical Dispatch tab to view active GIS mappings.");
+                                }
+                              }}
+                              className="bg-blue-950/50 hover:bg-blue-900/60 text-blue-300 border border-blue-800/40 px-3 py-1.5 rounded-lg text-[10.5px] font-bold tracking-tight transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-crosshairs text-blue-400"></i>
+                              <span>Track on Tactical Map</span>
+                            </button>
+
+                            {flare.status === "Pulsing" && (
+                              <button
+                                onClick={() => {
+                                  setGotchaFlares(prev => prev.map(f => f.id === flare.id ? { ...f, status: "Routed" as const } : f));
+                                  // Set nearest officer to responding status
+                                  setOfficers(prev => prev.map((off, idx) => idx === 0 ? { ...off, status: "Responding" as const } : off));
+                                  playTacticalSound("success");
+                                  showToast(`🚔 Dispatch order issued to Officer Ravi (BLR) for ${flare.id}!`);
+                                }}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-1.5 rounded-lg text-[10.5px] tracking-tight transition-all active:scale-95 flex items-center gap-1.5 ml-auto cursor-pointer"
+                              >
+                                <i className="fa-solid fa-truck-responder text-[10px]"></i>
+                                <span>Deploy Officer</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Disclaimer footer */}
+                  <div className="p-3 bg-slate-950/40 border-t border-[#1e293b] text-center text-[8.5px] font-mono text-slate-500 uppercase tracking-wide flex-shrink-0">
+                    🔒 ALL META SOCIAL DATA PACKETS ARE SHA-256 ENCRYPTED WITH GEOLOCATION TRUST CERTIFICATION
+                  </div>
+                </div>
+
+                {/* Right: AI Slang Decoder Matrix (2/5) */}
+                <div className="lg:col-span-2 bg-[#111827] border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[620px]">
+                  {/* Card Header */}
+                  <div className="p-4 bg-slate-900/50 border-b border-[#1e293b] flex items-center space-x-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-950/75 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                      <i className="fa-solid fa-brain text-xs animate-pulse"></i>
+                    </div>
+                    <div className="text-left">
+                      <h2 className="text-xs font-black tracking-widest text-slate-100 uppercase">AI SLANG & SENTIMENT DECODER</h2>
+                      <p className="text-[10px] text-slate-400">Translating Gen Z urgency metrics into formal police logs</p>
+                    </div>
+                  </div>
+
+                  {/* Scrollable Workspace */}
+                  <div className="flex-grow p-4 overflow-y-auto space-y-4 scrollbar-thin">
+                    {/* Preset selections */}
+                    <div className="space-y-2 text-left">
+                      <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-wider block">PRE-LOADED DISTRESS PRESETS:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { label: "Aisha Stalker Alert 💅", text: "omg some sketchy guy is literally following me at raw-silk layout i'm shook fr fr 😭" },
+                          { label: "Kabir Home Trespass 🛹", text: "nah some rando is lowkey trying to open my PG gate at malleswaram and he's def sussa... highkey scared" },
+                          { label: "Ananya transit creep 🎧", text: "no cap creepy passenger staring at me in INDIRANAGAR METRO, feels unsafe no chill" },
+                          { label: "Rahul street racer 🚗", text: "no cap but there's a wild street race in hsr layout sector 3, they're literally speedrunning real-life GTA. and one of them hit a pole! absolute chaos" }
+                        ].map((preset, pIdx) => (
+                          <button
+                            key={pIdx}
+                            onClick={() => {
+                              setGotchaSelectedPreset(preset.text);
+                              setGotchaSlangInput(preset.text);
+                              playTacticalSound("click");
+                            }}
+                            className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold border transition-all text-left truncate max-w-full cursor-pointer ${
+                              gotchaSelectedPreset === preset.text
+                                ? "bg-violet-950/60 text-violet-300 border-violet-500/40 shadow-inner"
+                                : "bg-slate-900 hover:bg-slate-850 text-slate-400 border-slate-800"
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Text Area */}
+                    <div className="space-y-1.5 text-left">
+                      <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-wider block">CUSTOM DISTRESS MESSAGE INPUT:</span>
+                      <textarea
+                        value={gotchaSlangInput}
+                        onChange={(e) => setGotchaSlangInput(e.target.value)}
+                        placeholder="Type custom slang-heavy distress beacon here... (e.g. 'highkey following me help me i'm shook')"
+                        className="w-full h-24 bg-[#070b14] border border-[#1e293b] rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/50 resize-none font-medium leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Decode Trigger Button */}
+                    <button
+                      onClick={() => handleTranslateSlang(gotchaSlangInput)}
+                      disabled={gotchaIsTranslating || !gotchaSlangInput.trim()}
+                      className="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-700 hover:to-indigo-700 hover:to-blue-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition-all duration-150 transform active:scale-95 flex items-center justify-center space-x-2 border border-violet-500/30 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {gotchaIsTranslating ? (
+                        <>
+                          <i className="fa-solid fa-circle-notch animate-spin text-sm"></i>
+                          <span>AI DECIPHERING MATRIX SCANS...</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-microchip text-sm"></i>
+                          <span>Translate & Calibrate Incident</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Decoded results block */}
+                    <div className="relative border border-slate-800 bg-slate-950/30 rounded-xl p-4 min-h-[180px] flex flex-col justify-between text-left">
+                      {gotchaIsTranslating ? (
+                        <div className="flex-grow flex flex-col items-center justify-center space-y-3.5 py-6">
+                          <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-[10px] font-mono text-violet-400 font-bold uppercase tracking-widest animate-pulse">Running Neural Slang Embeddings Classifier...</p>
+                        </div>
+                      ) : gotchaTranslationResult ? (
+                        <div className="space-y-3.5">
+                          {/* Title Status Metrics */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[8px] font-mono font-bold bg-rose-950/80 border border-rose-800 text-rose-400 px-2.5 py-0.5 rounded uppercase">
+                              Urgency: {gotchaTranslationResult.urgency_rating}
+                            </span>
+                            <span className="text-[8px] font-mono font-bold bg-violet-950/80 border border-violet-800 text-violet-400 px-2.5 py-0.5 rounded uppercase">
+                              Emotion: {gotchaTranslationResult.emotional_state}
+                            </span>
+                          </div>
+
+                          {/* Decoded formal translation */}
+                          <div className="space-y-1">
+                            <span className="text-[8.5px] font-mono font-bold text-slate-500 uppercase tracking-wider block">DECODED FORMAL COMPLIANT REPORT:</span>
+                            <p className="text-xs font-semibold text-slate-100 leading-relaxed font-sans bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                              {gotchaTranslationResult.formal_translation}
+                            </p>
+                          </div>
+
+                          {/* Action Payload */}
+                          <div className="space-y-1">
+                            <span className="text-[8.5px] font-mono font-bold text-slate-500 uppercase tracking-wider block">SUGGESTED DISPATCH PAYLOAD:</span>
+                            <p className="text-xs font-mono font-medium text-[#eab308] leading-tight">
+                              👮 &raquo; {gotchaTranslationResult.responder_payload}
+                            </p>
+                          </div>
+
+                          {/* Extract Tags */}
+                          {gotchaTranslationResult.key_keywords && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {gotchaTranslationResult.key_keywords.map((kw: string, kwIdx: number) => (
+                                <span key={kwIdx} className="text-[8px] font-mono font-semibold bg-[#111827] border border-slate-850 px-2 py-0.5 rounded text-slate-400">
+                                  #{kw.toUpperCase()}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex-grow flex flex-col items-center justify-center space-y-2 py-10 text-center text-slate-500 text-xs font-medium italic">
+                          <i className="fa-solid fa-bolt-lightning text-xl text-slate-600 mb-2"></i>
+                          <span>No decoded telemetry loaded. Select an emergency beacon above or write a custom slang text to run the AI translator.</span>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Warning disclaimer footer */}
+                  <div className="p-3 bg-slate-950/40 border-t border-[#1e293b] text-center text-[8px] font-mono text-slate-500 uppercase tracking-wide flex-shrink-0">
+                    ⚠️ COGNITIVE DECODER MODEL IS ALIGNED TO THE GENERAL GEMINI EMBEDDINGS FRAMEWORK v2
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Bottom: Social SOS Strategy Bento Brief */}
+              <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-6 space-y-5 text-left">
+                <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm">
+                    <i className="fa-brands fa-square-instagram"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white tracking-tight uppercase">
+                      SOCIAL MEDIA SOVEREIGN SOS TRIAGE BRIEF & SCALE BLUEPRINT
+                    </h3>
+                    <p className="text-[10px] text-slate-500">Silicon Valley Product Strategy & &bull; Meta Ecosystem Integration Blueprint</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* Bento Box 1: Low-Friction Distress */}
+                  <div className="p-4 bg-[#111827]/40 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-emerald-400 text-sm font-bold flex items-center gap-1.5">
+                      <i className="fa-brands fa-whatsapp"></i>
+                      <span className="text-[11px] uppercase tracking-wider font-mono">1. WhatsApp Triage</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                      Recognizable and ubiquitous, WhatsApp remains the ultimate network. When citizens post quick emergency updates or live location beacons to trusted groups, this bridge listens to designated trigger-keys (e.g., KSP distress keywords), enabling direct police awareness with zero delay.
+                    </p>
+                  </div>
+
+                  {/* Bento Box 2: Monetization Core */}
+                  <div className="p-4 bg-[#111827]/40 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-[#eab308] text-sm font-bold flex items-center gap-1.5">
+                      <i className="fa-solid fa-coins"></i>
+                      <span className="text-[11px] uppercase tracking-wider font-mono">2. Public-Private Scale</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                      By establishing direct, verified API channels through Meta Enterprise, state law enforcement can license specialized enterprise distress bridges to private educational campuses and IT corridors, ensuring automated local precinct dispatch with continuous compliance.
+                    </p>
+                  </div>
+
+                  {/* Bento Box 3: Creator & Influencer Guard */}
+                  <div className="p-4 bg-[#111827]/40 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-violet-400 text-sm font-bold flex items-center gap-1.5">
+                      <i className="fa-brands fa-instagram"></i>
+                      <span className="text-[11px] uppercase tracking-wider font-mono">3. Instagram Guard Link</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                      Provides dedicated safety monitoring for online creators, micro-influencers, and young adults. When urgent distress keywords are shared via stories or comments, this bridge deciphers informal terms, logs spatial coordinates, and prevents physical harassment incidents proactively.
+                    </p>
+                  </div>
+
+                  {/* Bento Box 4: Global Integration */}
+                  <div className="p-4 bg-[#111827]/40 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-blue-400 text-sm font-bold flex items-center gap-1.5">
+                      <i className="fa-solid fa-globe"></i>
+                      <span className="text-[11px] uppercase tracking-wider font-mono">4. Global Scale Roadmap</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+                      Scaling the sovereign public safety network globally. Starting with the Karnataka Police Cloud, this pipeline maps onto other recognizable social platforms (TikTok, X, Snapchat), creating a standardized cognitive translation layer for law enforcement agencies worldwide.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
           {/* EMPTY PLACEHOLDER PAGES switching beautifully */}
-          {activeTab !== "Dashboard" && activeTab !== "FIR Search" && activeTab !== "Network Analysis" && activeTab !== "Crime Map" && activeTab !== "Repeat Offenders" && activeTab !== "AI Assistant" && activeTab !== "Trend Analysis" && activeTab !== "Security & Quality" && (
+          {activeTab !== "Dashboard" && activeTab !== "FIR Search" && activeTab !== "Network Analysis" && activeTab !== "Crime Map" && activeTab !== "Repeat Offenders" && activeTab !== "AI Assistant" && activeTab !== "Trend Analysis" && activeTab !== "Security & Quality" && activeTab !== "Tactical Dispatch" && activeTab !== "AI Interviewer" && activeTab !== "Social Media SOS Bridge" && (
             <div className="h-[480px] flex flex-col items-center justify-center bg-[#111827] border border-[#1e293b] rounded-lg p-8 text-center space-y-5 max-w-4xl mx-auto shadow-xl">
               <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-900/50 flex items-center justify-center text-[#2563eb] text-2xl shadow-inner shadow-blue-950">
                 <i className="fa-solid fa-triangle-exclamation text-amber-500 animate-pulse"></i>
