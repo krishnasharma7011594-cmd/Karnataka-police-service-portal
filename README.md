@@ -16,13 +16,20 @@ This platform bridges classical law enforcement tools with advanced cognitive mo
 * **Dynamic GIS Layering**: High-fidelity interactive map detailing patrol locations, hotspot radius overlays, and active emergency coordinates.
 * **Patrol Tracking Engine**: Real-time status indicators ("Idle", "Patrolling", "Responding") for active police officers, with flight coordinates calibration.
 
-### 3. 🎙️ AI Suspect & Witness Interviewer
-* **Multilingual Cognitive Gateway**: High-fidelity AI-driven interrogation/interview simulation in both **Kannada** and **English**.
-* **Audio Sentiment Tracking**: Direct micro-sound cues and active transcript loops that model the suspect's cooperation level, stress index, and narrative consistency.
+### 3. 🎙️ AI Pro Leaders Assistant & Multilingual Gateway
+* **Cognitive Leadership Console**: Integrates 4 specialized AI commander personas with unique tactical expertise and distinct communication styles:
+  - **DGP Alok Kumar**: Strategic Command & Sovereign Law (majestic legal authority).
+  - **SP Shruthi K. (CEN Cyber)**: Cyber Crime Forensic Analysis (technical cyber footprints, encryption).
+  - **Inspector Raghavan**: Tactical Operations Lead (fast field deployments, cruiser routing).
+  - **Meera Prasad**: Chief Citizen Liaison Officer (supportive, citizen-rights, safety tips).
+* **Role-Based Access Outflow**: Supports dynamic audience filtering:
+  - **Officer Mode**: Delivers advanced tactical briefings, threat scores, and suspect intelligence dossier linking.
+  - **Consumer/Citizen Mode**: Provides empathetic guidelines, public legal rights, safe practices, and FIR filing procedures.
+* **Multilingual Sound Synthesis**: Live voice response translation dynamically supported across English, Hindi, and Kannada.
 
 ### 4. 📲 Social Media SOS Triage & Sentiment Decoder (WhatsApp/Instagram Bridge)
 * **Ubiquitous Network Bridge**: Translates informal, slang-heavy distress signals from highly recognizable social networks (WhatsApp status alerts, Instagram distress stories) into structured, compliant police logs.
-* **Gen Z Slang Decoder**: Deciphers high-urgency keywords (e.g., *"shook"*, *"sussa"*, *"fr fr"*, *"highkey"*) using the Gemini API.
+* **Gen Z Slang Decoder**: Deciphers high-urgency keywords (e.g., *"shook"*, *"sussa"*, *"fr fr"*, *"highkey"*) using the secure server-side Gemini API.
 * **Simulated Telemetry Beacon**: One-click simulation of WhatsApp/Instagram SOS alerts that automatically inject coordinates into the active Tactical Dispatch module for immediate officer routing.
 * **Strategic Monetization & Scaling Blueprint**: A comprehensive layout detailing how Meta Enterprise APIs connect directly to police servers under a secure public-private license model.
 
@@ -31,11 +38,13 @@ This platform bridges classical law enforcement tools with advanced cognitive mo
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## 🛠️ Architecture, Security & Tech Stack
 
-- **Frontend**: React 18 with Vite, designed for desktop-first precision and micro-animation flows.
+- **Framework**: **Full-Stack Express + React 18 with Vite**.
+- **Dev-Server**: Run via `tsx` directly in TS.
+- **Build System**: Vite builds static client files into `dist/`, while `esbuild` compiles and bundles `server.ts` into a self-contained production-ready CommonJS bundle at `dist/server.cjs` bypassing strict runtime Node ESM relative imports.
 - **Styling**: Tailwind CSS for high-contrast, modern visual elements using a premium Dark Slate visual theme.
-- **AI Integrations**: Server-side proxy patterns utilizing the **Gemini API** for high-accuracy translation, tone analysis, and context extraction.
+- **API Security Proxy (Server-Side)**: Strictly conforms to security guidelines. All cognitive Gemini API calls are proxied securely through server endpoints (`/api/translate-slang` and `/api/chat`). The `GEMINI_API_KEY` is fully contained in the back-end env context and **never** exposed to the browser.
 - **Sound System**: Spatial sound cues and alarm feedback mapped via standard Web Audio API patterns.
 
 ---
@@ -58,9 +67,14 @@ npm install
 npm run dev
 ```
 
-### 4. Compile for Production
+### 4. Compile and Bundle for Production
 ```bash
 npm run build
+```
+
+### 5. Launch Standalone Production Server
+```bash
+npm start
 ```
 
 ---
